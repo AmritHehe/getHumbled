@@ -1,0 +1,25 @@
+{
+  "extends": "@repo/typescript-config/base.json",
+  "compilerOptions": {
+    // Environment setup & latest features
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "lib": ["ESNext"],
+    "target": "ESNext",
+    "module": "Preserve",
+    "moduleDetection": "force",
+    "jsx": "react-jsx",
+    "allowJs": true,
+
+    // Bundler mode
+    "moduleResolution": "bundler",
+    "verbatimModuleSyntax": true,
+    "noEmit": false,
+
+    // Best practices
+    "strict": true,
+    "skipLibCheck": true
+  },
+  "include": ["src", "types"] , 
+  "exclude": ["dist", "node_modules"]
+}
