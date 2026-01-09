@@ -1,1 +1,8 @@
 generated
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+packages/database/.env
+apps/web/.env

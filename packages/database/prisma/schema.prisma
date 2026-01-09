@@ -3,6 +3,7 @@
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 generator client {
@@ -10,9 +11,83 @@ generator client {
   output = "../generated/client"
 }
 
+enum Role {
+  User
+  Admin
+}
+
+enum ContestType {
+  DEV
+  DSA
+}
+enum ContestStatus {
+  UPCOMING
+  LIVE
+  CLOSED
+}
+
+enum MCQs {
+  A 
+  B
+  C
+  D
+}
 model User {
-  id            String    @id @default(cuid())
-  name          String?
+  id            String    @id @unique @default(cuid())
+  name          String
   email         String?   @unique
-  emailVerified DateTime?
+  password      String 
+  CreatedAt     DateTime?
+  role          Role @default(User)
+  contest       Contests[]
+}
+
+model Contests{ 
+  id   String @id @unique @default(cuid())
+  srNo Int @default(autoincrement())
+  title String @unique
+  discription String
+  type  ContestType
+  status ContestStatus
+  user User @relation(fields: [createdBy]  , references: [id])
+  createdBy  String
+  StartDate DateTime?
+  StartTime DateTime?
+  leaderboard LeaderBoard?
+  MCQ MCQ[]
+  codeQ Code[]
+
+}
+model MCQ{
+  id String @id @default(cuid())
+  srNo Int @default(autoincrement())
+  question String 
+  Solution MCQs
+  contest Contests @relation(fields: [contestTitle], references: [title] , onDelete: Cascade)
+  contestTitle String
+  createdAt DateTime?
+  points Int 
+  avgTTinMins Int @default(2)
+}
+model Code{
+  id String @id @default(cuid())
+  srNo Int @default(autoincrement())
+  question String
+  Solution String
+  contest Contests @relation(fields: [contestTitile] , references: [title] , onDelete: Cascade)
+  contestTitile String
+  avgTTinMins Int @default(30)
+}
+model LeaderBoard{
+  id String @id @unique @default(cuid())
+  contest Contests @relation(fields: [contestTitle] , references: [title] , onDelete: Cascade)
+  contestTitle String @unique
+  score Score[]
+}
+model Score{
+  id String @default(cuid()) @unique
+  user String
+  Rank String
+  leaderBoard LeaderBoard @relation(fields: [leaderboardId] , references: [id] , onDelete: Cascade)
+  leaderboardId String
 }
