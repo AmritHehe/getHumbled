@@ -10,13 +10,19 @@ export const ContestSchema = z.object({
 })
 
 export const MCQSchema = z.object({
-    createdBy : z.string(),
+    contestId : z.string(),
     question : z.string(),
     Soltion : z.enum(["A", "B", "C", "D"]),
     createdAt : z.date(),
     points : z.int(),
     avgTTinMins : z.int().optional()
     
+})
+export const GetContestSchema = z.object({
+    contestId : z.string(),
+})
+export const GetAllContestSchema = z.object({
+    status : z.enum([  "UPCOMING" ,"LIVE" ,"CLOSED" , "ALL"]),
 })
 
 export const CodeSchema = z.object({
