@@ -12,8 +12,8 @@ generator client {
 }
 
 enum Role {
-  User
-  Admin
+  USER
+  ADMIN
 }
 
 enum ContestType {
@@ -38,7 +38,7 @@ model User {
   email         String?   @unique
   password      String 
   CreatedAt     DateTime?
-  role          Role @default(User)
+  role          Role @default(USER)
   contest       Contests[]
 }
 
@@ -63,8 +63,8 @@ model MCQ{
   srNo Int @default(autoincrement())
   question String 
   Solution MCQs
-  contest Contests @relation(fields: [contestTitle], references: [title] , onDelete: Cascade)
-  contestTitle String
+  contest Contests @relation(fields: [contestId], references: [id] , onDelete: Cascade)
+  contestId String
   createdAt DateTime?
   points Int 
   avgTTinMins Int @default(2)
@@ -74,14 +74,14 @@ model Code{
   srNo Int @default(autoincrement())
   question String
   Solution String
-  contest Contests @relation(fields: [contestTitile] , references: [title] , onDelete: Cascade)
-  contestTitile String
+  contest Contests @relation(fields: [contestId] , references: [id] , onDelete: Cascade)
+  contestId String
   avgTTinMins Int @default(30)
 }
 model LeaderBoard{
   id String @id @unique @default(cuid())
-  contest Contests @relation(fields: [contestTitle] , references: [title] , onDelete: Cascade)
-  contestTitle String @unique
+  contest Contests @relation(fields: [contestId] , references: [id] , onDelete: Cascade)
+  contestId String @unique
   score Score[]
 }
 model Score{
