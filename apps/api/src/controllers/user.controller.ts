@@ -4,7 +4,8 @@ import { prisma } from "@repo/database";
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
 
-export async function SignUp(req : Request  , res : Response){ 
+export async function SignUp(req : Request  , res : Response ){ 
+    
     const {data , success} = UserSignUpSchema.safeParse(req.body)
     if(!success){
         return res.status(400).json({
@@ -18,7 +19,8 @@ export async function SignUp(req : Request  , res : Response){
             data : { 
                 name : data.username , 
                 email : data.email,
-                password : hashedPassword
+                password : hashedPassword,
+                role : data.role
             }
         })
         return res.status(201).json({
@@ -26,7 +28,8 @@ export async function SignUp(req : Request  , res : Response){
             data :  { 
                 name : result.name,
                 email : result.email , 
-                password : result.password
+                password : result.password,
+                role : result.role
             }
         })
     }
@@ -39,7 +42,9 @@ export async function SignUp(req : Request  , res : Response){
 
     
 }
-export async function Signin(req : Request  , res : Response){ 
+export async function SignIn(req : Request  , res : Response ){ 
+
+  
     const {data , success} = UserSignInSchema.safeParse(req.body)
     if(!success){
         return res.status(400).json({
@@ -47,12 +52,10 @@ export async function Signin(req : Request  , res : Response){
             error : "Invalid Schema"
         })
     }
-    const hashedPassword = await bcrypt.hash(data.password , 10)
     try { 
         const result = await prisma.user.findUnique({
             where : { 
                 email : data.email,
-                password : hashedPassword
             }
         })
         if(result == null){
@@ -61,11 +64,18 @@ export async function Signin(req : Request  , res : Response){
                 error : "User Not Found"
             })
         }
+        const passCheck = await bcrypt.compare(data.password , result.password)
+        if(!passCheck){ 
+            res.status(403).json({
+                success : false , 
+                error : "invalid credentials"
+            })
+        }
         const jwtSecret = process.env.JWT_SECRET!
 
         const token = jwt.sign({
             userId : result.id, 
-            Role : result.role
+            role : result.role
         } , jwtSecret)
 
         return res.status(201).json({
