@@ -15,17 +15,17 @@ export async function CreateContest(req : Request  , res : Response){
         })
     }
     const role = req.role; 
-    if(role != "Admin"){ 
+    if(role != "ADMIN"){ 
         return res.status(403).json({
             success : false , 
             error : "wrong role ,acess forbidden"
         })
     }
-    const {data , success} = ContestSchema.safeParse(req.body)
+    const {data , success , error} = ContestSchema.safeParse(req.body)
     if(!success){ 
         return res.status(400).json({
             success : false , 
-            error : "invalid schema"
+            error : "invalid schema" + error
         })
     }
     try { 
@@ -65,7 +65,7 @@ export async function CreateMcqQuestion(req : Request  , res : Response){
         })
     }
     const role = req.role; 
-    if(role != "Admin"){ 
+    if(role != "ADMIN"){ 
         return res.status(403).json({
             success : false , 
             error : "wrong role ,acess forbidden"
@@ -87,6 +87,10 @@ export async function CreateMcqQuestion(req : Request  , res : Response){
                 avgTTinMins : data.avgTTinMins,
                 points : 10
             }
+        })
+        return res.status(200).json({
+            success : true , 
+            data  : result
         })
     }
     catch(e){ 
@@ -110,6 +114,9 @@ export async function GetContest(req : Request  , res : Response){
         let contest = await prisma.contests.findUnique({
             where : { 
                 id : contestId 
+            },
+            include : {
+                MCQ : true
             }
         })
         if(contest == null){ 
