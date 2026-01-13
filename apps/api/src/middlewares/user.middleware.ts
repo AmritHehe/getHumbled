@@ -13,14 +13,16 @@ export async function TokenVerification(req : Request  , res :Response , next : 
     }
     const tokenArray = bearerToken?.split(" ")
     const token = tokenArray[1];
-    
-    const decoded = jwt.verify(token , jwtSecret) as JwtPayload & {userId : string , role : "Admin" | "User"}
+    // console.log("token " + token)
+    const decoded = jwt.verify(token , jwtSecret) as JwtPayload & {userId : string , role : "ADMIN" | "USER"}
     if(!decoded){
         return res.status(403).json({
             success : false , 
             error : "coudnt verify the token"
         })
     }
+    // console.log("user ID " + decoded.userId)
+    // console.log("role" + decoded.role)
     req.userId  =decoded.userId
     req.role = decoded.role
     next()
