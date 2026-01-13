@@ -1,9 +1,10 @@
 import Router from "express"
-import { SignUp } from "../controllers/user.controller"
+import { SignUp  , SignIn} from "../controllers/user.controller"
 
-const router = Router()
+const UserRouter = Router()
 
-router.route("/user/signup").post(SignUp)
+UserRouter.post("/user/signUp" , SignUp) 
+UserRouter.post("/user/signIn" , SignIn) 
 
 
-export default router;
+export default UserRouter;
