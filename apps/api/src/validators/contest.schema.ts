@@ -6,14 +6,14 @@ export const ContestSchema = z.object({
     discription : z.string().min(10).max(2000),
     type : z.enum(["DSA" , "DEV"]),
     status : z.enum([  "UPCOMING" ,"LIVE" ,"CLOSED"]),
-    StartTime : z.date(), 
+    StartTime : z.coerce.date(), 
 })
 
 export const MCQSchema = z.object({
     contestId : z.string(),
     question : z.string(),
     Soltion : z.enum(["A", "B", "C", "D"]),
-    createdAt : z.date(),
+    createdAt : z.coerce.date(),
     points : z.int(),
     avgTTinMins : z.int().optional()
     
