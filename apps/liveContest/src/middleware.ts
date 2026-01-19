@@ -1,5 +1,5 @@
-import jwt from "jsonwebtoken"
-export function checkUser(token : string) : string | null {
+import jwt, { type JwtPayload } from "jsonwebtoken"
+export function checkUser(token : string) : JwtPayload | null {
    const JWT_SECRET = process.env.JWT_SECRET!
    if(JWT_SECRET == null){ 
     console.log("tell amrit to fix his code")
@@ -13,7 +13,7 @@ export function checkUser(token : string) : string | null {
         if(!decoded || !decoded.userId){ 
             return null; 
         }  
-        return decoded.userId ;
+        return decoded ;
    }
 
    catch(e){

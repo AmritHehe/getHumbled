@@ -2,6 +2,11 @@ import { WebSocket ,  WebSocketServer } from 'ws';
 import {prisma} from "@repo/database"
 import { checkUser } from './middleware';
 import { json } from 'zod';
+import { redisClient } from './redisClient';
+import { use } from 'react';
+import type { JwtPayload } from 'jsonwebtoken';
+
+
 const wss = new WebSocketServer({ port: 8080 });
 
 interface User { 
@@ -30,39 +35,70 @@ interface contestSol {
 
 //leaderbaord should stay peristant , even if server crashes we should be able to recover it 
 // redis ? db call every 10-20 secs ? 
+
+// todo -> state management in redis , update db every 10 sec ! 
+
 const leaderboard = [{
     userId : "123abcd", 
     totalPoints : 20
 }]
-const users :User[] = []  
-const allContests : contestSol[] = []
+//well you do not need to do this :) -> redis automatically initialize when you call your first user
+// export async function makeLeaderbaordState(  contestId : string) {    
+//     await redisClient.zAdd(`leaderboard:${contestId}` , []) 
+//     console.log("sucessfull")
+// }
+export async function  addUserInLeaderBoard( contestId : string , userName:string) {
+    await redisClient.zAdd(`leaderboard:${contestId}` , { 
+        score : 0 , 
+        value : userName
+    })
+    console.log("sucessfull")
+}
+export async function  addUserInDB(userId : string , contestId : string , role : "USER" | "ADMIN") {
+    await redisClient.hSet(`user:${userId}` , { 
+        role : role , 
+        contestId : contestId
+    })
+    console.log("sucessfull")
+}
+export async function  fetchContestAnswer(contestId:string , contestSol : any) {
+    await redisClient.hSet(`contest:${contestId}` , {
+        solution : JSON.stringify(contestSol)
+    })
+    console.log("sucessfull")
+}
 
-wss.on('connection', function connection(ws , request) {
+const users :User[] = []  
+// const allContests : contestSol[] = []
+
+wss.on('connection', async function connection(ws , request) {
     console.log("WS connected:", request.url);
     ws.on("error", (err) => {
         console.error("WS Error:", err);
     });
     const fullUrl = new URL(request.url || "", `http://${request.headers.host}`);
     const token = fullUrl.searchParams.get("token") || "";
-    const userId = checkUser(token); 
-    if(userId==null){ 
+    const user :JwtPayload | null = checkUser(token); 
+    if(!user){ 
         ws.close(1008 , "Invalid Token")
         return ;
     } 
     users.push({ 
         ws ,
         contestId : "",
-        userId, 
+        userId : user.userId, 
         answers : []
     })
-    
+        
+
+    await addUserInDB(user.userId , "" , user.role )
     ws.on('message', async function message(data) {
         let parseData ; 
         try { 
             parseData = JSON.parse(data as unknown as string);
         }
         catch(e){ 
-            ws.send("failed to parse the data")
+           return ws.send("failed to parse the data")
         }
         if(parseData.type === "init_contest"){ 
             // message request schema
@@ -75,23 +111,33 @@ wss.on('connection', function connection(ws , request) {
                     contestId : contestId
                 }
             })
-            if(mcqDetails==null){
+            if(mcqDetails.length === 0){
                 console.log("no mcqs found in the upcming contest")
-                ws.send("no mcqs found in the upcming contest")
+                return ws.send("no mcqs found in the upcming contest")
             }
-            const isSolutionAlreadyExist = allContests.find(x => x.contestId === contestId)
-            if(isSolutionAlreadyExist != undefined){ 
-                console.log("solution already exisit " + isSolutionAlreadyExist)
-                ws.send("solution already exisit" + isSolutionAlreadyExist)
+            try { 
+                const isSolutionAlreadyExist = await redisClient.exists(`contest:${contestId}`)
+                if(isSolutionAlreadyExist){ 
+                    console.log("solution already exisit " + isSolutionAlreadyExist)
+                    ws.send("solution already exisit" + isSolutionAlreadyExist)
+                    return
+                }
             }
-            allContests.push({
-                contestId : contestId , 
-                contestSol : mcqDetails
-            })
-            console.log("pushed the data to table " + JSON.stringify(mcqDetails))
-            console.log("all Contests" + JSON.stringify(allContests))
+            catch(e){ 
+                console.log("solution didnt exist at all " + e) 
+            }
+            try { 
+                await fetchContestAnswer(contestId , mcqDetails)
+                console.log("sucessfully added contest in redis")
+                const Solution =  await redisClient.hGet(`contest:${contestId}` , "solution")
+                console.log("sucess")
+                return ws.send("redis init was sucessfull" + Solution)
+            }
+            catch(e){ 
+                console.log("failed")
+                ws.send("failed to cache answers in resis")
+            }
             ws.send("pushed the data to table " + JSON.stringify(mcqDetails))
-            ws.send("all Contests" + JSON.stringify(allContests))
         }
         if (parseData.type === "join_contest"){ 
             //message schema
@@ -104,16 +150,29 @@ wss.on('connection', function connection(ws , request) {
                 console.log("returning as didnt able to find user")
                 return 
             }
+            const existingUser  =  await redisClient.exists(`user:${user.userId}`)
+            if(existingUser){ 
+                ws.send("user already joined the contest")
+            }
             user.contestId = parseData.contestId
-            
-            leaderboard.push({
-                userId : user.userId , 
-                totalPoints : 0
-            })
+            try{ 
+                await addUserInLeaderBoard(user.contestId , user.userId)
+                console.log("sucess")
+            }
+            catch(e){ 
+                ws.send("failed to join yser to contest")
+            }
+            const limit = 10
+            const leaderbaord = await redisClient.zRangeWithScores(
+                `leaderboard:${user.contestId}` ,
+                0 , 
+                limit -1 , 
+                { REV : true}
+            )
             console.log("user joined sucessfully")
-            console.log("leaderboard" + JSON.stringify(leaderboard))
+            console.log("leaderboard" + JSON.stringify(leaderbaord))
             ws.send("sucessfully joined the contest")
-            ws.send("leaderboard" + JSON.stringify(leaderboard))
+ 
         }
 
         if(parseData.type === "leave_contest"){ 
@@ -128,6 +187,12 @@ wss.on('connection', function connection(ws , request) {
         }
 
         if(parseData.type === "submit_answer"){ 
+            // { 
+            //     "type" : "submit_answer" ,
+            //     "contestId" : "cmkbrqsfq0001rrp3nr3t7qmd" ,
+            //     "questionId" : "cmkbrsj5x0005rrp30w7u7s1o" ,
+            //     "answer" : "A"
+            // }
             const contestId = parseData.contestId; 
             const questionId = parseData.questionId
             const answer = parseData.answer; 
