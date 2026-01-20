@@ -1,24 +1,17 @@
 import { WebSocket ,  WebSocketServer } from 'ws';
 import {prisma} from "@repo/database"
 import { checkUser } from './middleware';
-import { json } from 'zod';
 import { redisClient } from './redisClient';
-import { use } from 'react';
 import type { JwtPayload } from 'jsonwebtoken';
 
 
 const wss = new WebSocketServer({ port: 8080 });
 
-interface User { 
-  ws: WebSocket,
-//   rooms : string[],
-  contestId : string ,
-  userId : string , 
-  answers : { 
-    questionId : string,
-    userAnswer : "A" | "B" | "C" | "D"
-  }[]
-}
+const users = new Map<WebSocket, {
+  userId: string;
+  contestId?: string;
+  role: "USER" | "ADMIN";
+}>();
 interface contestSol { 
     contestId : string , 
     contestSol :  {
@@ -37,11 +30,6 @@ interface contestSol {
 // redis ? db call every 10-20 secs ? 
 
 // todo -> state management in redis , update db every 10 sec ! 
-
-const leaderboard = [{
-    userId : "123abcd", 
-    totalPoints : 20
-}]
 //well you do not need to do this :) -> redis automatically initialize when you call your first user
 // export async function makeLeaderbaordState(  contestId : string) {    
 //     await redisClient.zAdd(`leaderboard:${contestId}` , []) 
@@ -52,23 +40,32 @@ export async function  addUserInLeaderBoard( contestId : string , userName:strin
         score : 0 , 
         value : userName
     })
-    console.log("sucessfull")
+    console.log("adding user in leaderboard sucessfull")
 }
 export async function  addUserInDB(userId : string , contestId : string , role : "USER" | "ADMIN") {
     await redisClient.hSet(`user:${userId}` , { 
         role : role , 
-        contestId : contestId
     })
-    console.log("sucessfull")
+    console.log("adding user in redis sucessfull")
 }
-export async function  fetchContestAnswer(contestId:string , contestSol : any) {
+export async function  addContestAnswer(contestId:string , contestSol : any) {
     await redisClient.hSet(`contest:${contestId}` , {
         solution : JSON.stringify(contestSol)
     })
-    console.log("sucessfull")
+    console.log("adding ContestSolution Sucessfull")
+}
+export async function addUserAnswerSubmission(questionId : string , answer: string , userId : string , contestId : string , points = 0) {
+    await redisClient.hSet(`submissions:${contestId}:${userId}` ,
+        questionId , 
+        JSON.stringify({
+            answer,
+            points
+        })
+    )
+    console.log("adding user answer was sucessfull")
 }
 
-const users :User[] = []  
+
 // const allContests : contestSol[] = []
 
 wss.on('connection', async function connection(ws , request) {
@@ -83,11 +80,9 @@ wss.on('connection', async function connection(ws , request) {
         ws.close(1008 , "Invalid Token")
         return ;
     } 
-    users.push({ 
-        ws ,
-        contestId : "",
-        userId : user.userId, 
-        answers : []
+    users.set(ws , { 
+        userId : user.userId,
+        role : user.role
     })
         
 
@@ -127,7 +122,7 @@ wss.on('connection', async function connection(ws , request) {
                 console.log("solution didnt exist at all " + e) 
             }
             try { 
-                await fetchContestAnswer(contestId , mcqDetails)
+                await addContestAnswer(contestId , mcqDetails)
                 console.log("sucessfully added contest in redis")
                 const Solution =  await redisClient.hGet(`contest:${contestId}` , "solution")
                 console.log("sucess")
@@ -176,7 +171,7 @@ wss.on('connection', async function connection(ws , request) {
         }
 
         if(parseData.type === "leave_contest"){ 
-            const user = users.find(x => x.ws  === ws); 
+            const user = users.get(ws)
             // currenrly throughing user , practically , we need to make a db call here or just saved that persisted state
             if(!user){ 
                 return; 
@@ -184,6 +179,7 @@ wss.on('connection', async function connection(ws , request) {
             user.contestId = ""
             console.log("sucessfully left the contest")
             ws.send("sucessfully left the contest")
+            ws.close(1008 , "sucessfully left the contest")
         }
 
         if(parseData.type === "submit_answer"){ 
@@ -197,52 +193,87 @@ wss.on('connection', async function connection(ws , request) {
             const questionId = parseData.questionId
             const answer = parseData.answer; 
             try{
-                const user = users.find(x => x.ws  === ws); 
+                const user = users.get(ws)
                 if(!user){ 
-                    return; 
+                    return ws.send("unable to find user")
                 }
-                else user.answers.push({
-                    questionId : questionId, 
-                    userAnswer : answer
-                })
-            // we need to somehow make a function which pulls out all the correct answers of that specific contest
-            // leaderboard logic in future
+                const userId =user.userId
+                const AlreadyScored = await redisClient.hGet(`submissions:${contestId}:${userId}` , questionId)
+                console.log("already exisited soluton " + AlreadyScored)
+                if(AlreadyScored){ 
+                    
+                    return ws.send("submission already exist")
+                }
+                // we need to somehow make a function which pulls out all the correct answers of that specific contest
+                // leaderboard logic in future
                 //very bad logic but lets try for now
                 //once a question is submitted , if user try to submit the question again it should give the error
                 //we should update the db first x
-                const allMCQofThisContest = allContests.find(x => x.contestId === contestId)
-                const solutionOfAllMCQs = allMCQofThisContest?.contestSol
-                const thisMCQSolution = solutionOfAllMCQs?.find(x=> x.id === questionId)
+                let StringifiedMCQ  : string | null = await redisClient.hGet(`contest:${contestId}` , "solution")
+                if(!StringifiedMCQ){ 
+                    console.log("unable to find contest mcq in redis , fetching from db")
+                    try { 
+                        const MCQs = await prisma.mCQ.findMany({
+                            where : {
+                                contestId : contestId
+                            }
+                        })
+                        await addContestAnswer(contestId , MCQs)
+                        StringifiedMCQ = await redisClient.hGet(`contest:${contestId}` , "solution")
+
+                    }
+                    catch(e){ 
+                        console.log("failed with error " + e)
+                        return ws.send("failed with error " + e)
+                    }
+                }
+                const allMCQofThisContest = JSON.parse(StringifiedMCQ!)
+                const thisMCQSolution = allMCQofThisContest?.find((x : any)=> x.id === questionId)
                 if(thisMCQSolution == null){ 
                     console.log("failed to find the mcq at db")
                     ws.send("failed to find the mcq at db")
                     return 
                 }
+                
                 const correctAnswer = thisMCQSolution?.Solution
                 if(correctAnswer == answer ){ 
-                    ws.send("correct answr")
-                    let  foundIndex = leaderboard.findIndex(leaderboard => leaderboard.userId == user.userId);
-                    let prevPoints =  leaderboard[foundIndex].totalPoints
-                    leaderboard[foundIndex] = { 
-                        userId : user.userId , 
-                        totalPoints : prevPoints + thisMCQSolution!.points
-                    }
-                    ws.send("updated leaderboard" + JSON.stringify(leaderboard))
+                    ws.send("correct answerr")
+                    
+                    await addUserAnswerSubmission(questionId , answer , userId , contestId , thisMCQSolution.points)
+                    const addedSubmission = await redisClient.hGet(`submissions:${contestId}:${userId}`, questionId)
+                    console.log("hget" +  addedSubmission)
+                    //leaderboard update krna hai yaha par redis mein
+                    //send updated leaderboard
+
+                    await redisClient.zIncrBy(`leaderboard:${contestId}` , 
+                        10 , 
+                        userId 
+                    )
+                    const UpdatedLeaderBoard =  await redisClient.zRangeWithScores(
+                        `leaderboard:${contestId}`,
+                        0,
+                        10 ,
+                        { REV: true }
+                    );
+                    ws.send("updated leaderboard" )
                 }
                 else{
                     ws.send("Wrong answer")
+                    await addUserAnswerSubmission(questionId , answer , userId , contestId , 0 )
                 }
                 
             } 
-        catch(e){ 
-            alert("error submiting user answer " + e)
-            ws.send("error in submitting answer " + e)
-        }
+            catch(e){ 
+                alert("error submiting user answer " + e)
+                ws.send("error in submitting answer " + e)
+            }
 
 
     }
     console.log('received: %s', data);
     });
-
+    ws.on("close" , ()=> { 
+        users.delete(ws)
+    })
     ws.send('ws handshake sucessfull');
 });
