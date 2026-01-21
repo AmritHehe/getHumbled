@@ -1,17 +1,27 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, ChevronLeft, ChevronRight, Send, CheckCircle, Clock } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, Send, CheckCircle, Wifi, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { QuestionCard } from '@/components/QuestionCard';
 import { Timer } from '@/components/Timer';
 import { LeaderboardTable } from '@/components/LeaderboardTable';
 import { api } from '@/lib/api';
-import type { Contest, MCQ, MCQOption, Score } from '@/lib/types';
+import type { Contest, MCQ, MCQOption } from '@/lib/types';
 import toast from 'react-hot-toast';
 import { formatTime } from '@/lib/utils';
+
+const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8080';
+
+interface LeaderboardEntry {
+    rank: number;
+    userId: string;
+    userName: string;
+    totalPoints: number;
+    previousRank?: number;
+}
 
 function parseQuestion(rawQuestion: string, srNo: number) {
     const parts = rawQuestion.split('\n\nOptions:\n');
@@ -45,6 +55,8 @@ function parseQuestion(rawQuestion: string, srNo: number) {
 export default function LiveContestPage() {
     const params = useParams();
     const router = useRouter();
+    const contestId = params.id as string;
+
     const [contest, setContest] = useState<Contest | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -54,10 +66,188 @@ export default function LiveContestPage() {
     const startTimeRef = useRef<number>(Date.now());
     const [timeTaken, setTimeTaken] = useState(0);
 
+    // WebSocket state
+    const wsRef = useRef<WebSocket | null>(null);
+    const [wsConnected, setWsConnected] = useState(false);
+    const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+    const [userScore, setUserScore] = useState(0);
+    const [userRank, setUserRank] = useState<number | null>(null);
+    const previousLeaderboardRef = useRef<Map<string, number>>(new Map());
+
+    // Transform backend leaderboard format to frontend format
+    const transformLeaderboard = useCallback((data: { value: string; score: number }[]) => {
+        const prevRanks = previousLeaderboardRef.current;
+        const newEntries: LeaderboardEntry[] = data.map((entry, idx) => ({
+            rank: idx + 1,
+            userId: entry.value,
+            userName: entry.value, // Backend uses userId as value
+            totalPoints: entry.score,
+            previousRank: prevRanks.get(entry.value),
+        }));
+
+        // Update previous ranks for next update
+        const newPrevRanks = new Map<string, number>();
+        newEntries.forEach(e => newPrevRanks.set(e.userId, e.rank));
+        previousLeaderboardRef.current = newPrevRanks;
+
+        return newEntries;
+    }, []);
+
+    // Get current user ID from token
+    const getUserIdFromToken = () => {
+        const token = localStorage.getItem('token');
+        if (!token) return null;
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            return payload.userId;
+        } catch {
+            return null;
+        }
+    };
+
+    // Connect to WebSocket
+    useEffect(() => {
+        if (!contestId) return;
+
+        const token = localStorage.getItem('token');
+        if (!token) {
+            toast.error('Please sign in to participate');
+            router.push('/auth/signin');
+            return;
+        }
+
+        let hasJoined = false;
+        console.log('[WS] Connecting to:', WS_URL);
+        const ws = new WebSocket(`${WS_URL}?token=${token}`);
+        wsRef.current = ws;
+
+        ws.onopen = () => {
+            console.log('WebSocket connected, sending init_contest...');
+            setWsConnected(true);
+
+            // First initialize the contest (caches solutions in Redis)
+            const initMsg = JSON.stringify({
+                type: 'init_contest',
+                contestId: contestId
+            });
+            console.log('Sending:', initMsg);
+            ws.send(initMsg);
+        };
+
+        ws.onmessage = (event) => {
+            console.log('Raw WS message received:', event.data);
+
+            // Skip non-JSON handshake message
+            if (event.data === 'ws handshake sucessfull') {
+                console.log('WS handshake received, waiting for init_contest response...');
+                return;
+            }
+
+            try {
+                const message = JSON.parse(event.data);
+                console.log('Parsed WS Message:', message);
+
+                // Handle init_contest response - then join (only once)
+                if (!hasJoined && (message.message === 'redis init was sucessfull' || message.error === 'solution already exist')) {
+                    hasJoined = true;
+                    console.log('[WS] Contest initialized, sending join_contest...');
+                    ws.send(JSON.stringify({
+                        type: 'join_contest',
+                        contestId: contestId
+                    }));
+                    return;
+                }
+
+                // Handle join_contest response
+                if (message.message === 'sucessfully joined the contest' && message.data) {
+                    console.log('Joined contest! Leaderboard data:', message.data);
+                    const entries = message.data.map((entry: { value: string; score: number }, idx: number) => ({
+                        rank: idx + 1,
+                        userId: entry.value,
+                        userName: entry.value,
+                        totalPoints: entry.score,
+                    }));
+                    setLeaderboard(entries);
+
+                    const userId = getUserIdFromToken();
+                    const userEntry = entries.find((e: LeaderboardEntry) => e.userId === userId);
+                    if (userEntry) {
+                        setUserScore(userEntry.totalPoints);
+                        setUserRank(userEntry.rank);
+                    }
+                    return;
+                }
+
+                // Handle submit_answer correct response
+                if (message.success && message.error === 'correct' && message.data) {
+                    console.log('Correct answer! Updated leaderboard:', message.data);
+                    toast.success('Correct answer! +10 points');
+                    const entries = message.data.map((entry: { value: string; score: number }, idx: number) => ({
+                        rank: idx + 1,
+                        userId: entry.value,
+                        userName: entry.value,
+                        totalPoints: entry.score,
+                    }));
+                    setLeaderboard(entries);
+
+                    const userId = getUserIdFromToken();
+                    const userEntry = entries.find((e: LeaderboardEntry) => e.userId === userId);
+                    if (userEntry) {
+                        setUserScore(userEntry.totalPoints);
+                        setUserRank(userEntry.rank);
+                    }
+                    return;
+                }
+
+                // Handle incorrect answer
+                if (message.error === 'incorrect') {
+                    toast('Wrong answer', { icon: '❌' });
+                    return;
+                }
+
+                // Handle already submitted
+                if (message.error === 'submission already exist') {
+                    toast.error('Already submitted this question');
+                    return;
+                }
+
+                // Handle user already joined
+                if (message.error === 'User already joined the contest') {
+                    console.log('User already in contest');
+                    return;
+                }
+
+                console.log('Unhandled message:', message);
+
+            } catch (e) {
+                console.error('Failed to parse WS message:', e, 'Raw:', event.data);
+            }
+        };
+
+        ws.onerror = (error) => {
+            console.error('WebSocket error:', error);
+            setWsConnected(false);
+        };
+
+        ws.onclose = (event) => {
+            console.log('WebSocket disconnected, code:', event.code, 'reason:', event.reason);
+            setWsConnected(false);
+        };
+
+        return () => {
+            console.log('Cleaning up WebSocket...');
+            if (ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ type: 'leave_contest' }));
+            }
+            ws.close();
+        };
+    }, [contestId, router]);
+
+    // Fetch contest data
     useEffect(() => {
         async function fetchContest() {
-            if (!params.id) return;
-            const response = await api.getContest(params.id as string);
+            if (!contestId) return;
+            const response = await api.getContest(contestId);
             if (response.success && response.data) {
                 setContest(response.data);
             } else {
@@ -67,7 +257,7 @@ export default function LiveContestPage() {
             startTimeRef.current = Date.now();
         }
         fetchContest();
-    }, [params.id]);
+    }, [contestId]);
 
     if (isLoading) {
         return <div className="min-h-screen flex items-center justify-center">Loading contest...</div>;
@@ -80,11 +270,8 @@ export default function LiveContestPage() {
     const mcqQuestions = (contest.MCQ || []).sort((a, b) => a.srNo - b.srNo);
     const totalQuestions = mcqQuestions.length;
     const currentQuestionData = mcqQuestions[currentQuestionIndex];
-
-    // Calculate total duration based on sum of average times
     const totalDurationSeconds = mcqQuestions.reduce((acc, q) => acc + ((q.avgTTinMins || 2) * 60), 0);
 
-    // Parse current question
     const parsedQuestion = currentQuestionData
         ? parseQuestion(currentQuestionData.question, currentQuestionData.srNo)
         : null;
@@ -104,18 +291,28 @@ export default function LiveContestPage() {
     const handleSubmitAnswer = () => {
         if (!currentQuestionData || !answers[currentQuestionData.id]) return;
 
+        // Send answer via WebSocket
+        if (wsRef.current?.readyState === WebSocket.OPEN) {
+            wsRef.current.send(JSON.stringify({
+                type: 'submit_answer',
+                contestId: contestId,
+                questionId: currentQuestionData.id,
+                answer: answers[currentQuestionData.id]
+            }));
+        } else {
+            toast.error('Connection lost. Please refresh.');
+            return;
+        }
+
         const newSet = new Set(submittedQuestions);
         newSet.add(currentQuestionData.id);
         setSubmittedQuestions(newSet);
 
-        toast.success("Answer stored. Submitting...");
-
-        // Auto Advance logic
+        // Auto advance
         setTimeout(() => {
             if (currentQuestionIndex < totalQuestions - 1) {
                 setCurrentQuestionIndex(prev => prev + 1);
             } else {
-                // Last question submitted
                 handleFinishContest();
             }
         }, 800);
@@ -133,13 +330,7 @@ export default function LiveContestPage() {
         }
     };
 
-    const leaderboardEntries = (contest.leaderboard?.score || []).map((s: Score, idx: number) => ({
-        rank: parseInt(s.Rank) || idx + 1,
-        userId: s.id,
-        userName: s.user,
-        totalPoints: 0,
-        previousRank: parseInt(s.Rank) || idx + 1
-    }));
+    const userId = getUserIdFromToken();
 
     if (isCompleted) {
         return (
@@ -165,10 +356,21 @@ export default function LiveContestPage() {
                         </div>
                     </div>
 
+                    <div className="grid grid-cols-2 gap-4 py-4 border-b border-[var(--border)]">
+                        <div>
+                            <p className="text-sm text-[var(--text-muted)] mb-1">Your Score</p>
+                            <p className="text-2xl font-bold text-[var(--accent-primary)]">{userScore}</p>
+                        </div>
+                        <div>
+                            <p className="text-sm text-[var(--text-muted)] mb-1">Your Rank</p>
+                            <p className="text-2xl font-bold text-[var(--text-primary)]">#{userRank || '-'}</p>
+                        </div>
+                    </div>
+
                     <div className="flex flex-col gap-3">
-                        <Link href={`/contests/${params.id}`}>
+                        <Link href={`/contests/${contestId}/leaderboard`}>
                             <Button variant="primary" className="w-full">
-                                Back to Contest Home
+                                View Full Leaderboard
                             </Button>
                         </Link>
                         <Link href="/dashboard">
@@ -184,28 +386,35 @@ export default function LiveContestPage() {
 
     return (
         <div className="min-h-screen bg-[var(--bg-secondary)] flex flex-col">
-            {/* Top Bar - Adjusted Layout/Padding */}
+            {/* Top Bar */}
             <header className="bg-[var(--bg-primary)] border-b border-[var(--border)] sticky top-0 z-50 shadow-sm">
                 <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <Link
-                            href={`/contests/${params.id}`}
+                            href={`/contests/${contestId}`}
                             className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors p-2 -ml-2 rounded-lg hover:bg-[var(--bg-secondary)]"
                         >
                             <ArrowLeft className="w-5 h-5" />
                         </Link>
                         <div>
-                            <h1 className="font-semibold text-[var(--text-primary)] leading-tight">{contest.title}</h1>
+                            <div className="flex items-center gap-2">
+                                <h1 className="font-semibold text-[var(--text-primary)] leading-tight">{contest.title}</h1>
+                                {wsConnected ? (
+                                    <Wifi className="w-4 h-4 text-green-500" />
+                                ) : (
+                                    <WifiOff className="w-4 h-4 text-red-500" />
+                                )}
+                            </div>
                             <p className="text-xs text-[var(--text-muted)]">
                                 Question {currentQuestionIndex + 1} of {totalQuestions}
                             </p>
                         </div>
                     </div>
-                    <Timer initialSeconds={totalDurationSeconds} />
+                    <Timer initialSeconds={totalDurationSeconds} onTimeUp={handleFinishContest} />
                 </div>
             </header>
 
-            {/* Main Content - Adjusted Spacing */}
+            {/* Main Content */}
             <main className="flex-1 container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
                     {/* Question Section */}
@@ -292,22 +501,22 @@ export default function LiveContestPage() {
                             <div className="flex items-center justify-between mb-4">
                                 <h2 className="text-lg font-semibold text-[var(--text-primary)]">Live Leaderboard</h2>
                                 <Link
-                                    href={`/contests/${params.id}/leaderboard`}
+                                    href={`/contests/${contestId}/leaderboard`}
                                     className="text-sm text-[var(--accent-primary)] hover:underline font-medium"
                                 >
                                     Full View
                                 </Link>
                             </div>
 
-                            {leaderboardEntries.length > 0 ? (
+                            {leaderboard.length > 0 ? (
                                 <LeaderboardTable
-                                    entries={leaderboardEntries}
-                                    currentUserId="currentUser"
+                                    entries={leaderboard.slice(0, 10)}
+                                    currentUserId={userId || undefined}
                                     showTrend={true}
                                 />
                             ) : (
                                 <div className="py-8 text-center text-[var(--text-muted)] text-sm bg-[var(--bg-elevated)] rounded-xl border border-dashed border-[var(--border)]">
-                                    Waiting for participants...
+                                    {wsConnected ? 'Waiting for participants...' : 'Connecting...'}
                                 </div>
                             )}
                         </div>
@@ -317,11 +526,11 @@ export default function LiveContestPage() {
                             <h3 className="text-sm font-medium text-[var(--text-muted)] mb-4">Your Performance</h3>
                             <div className="grid grid-cols-2 gap-4 text-center">
                                 <div className="p-3 rounded-xl bg-[var(--bg-elevated)]">
-                                    <p className="text-2xl font-bold text-[var(--text-primary)]">{Object.keys(answers).length * 10}</p>
+                                    <p className="text-2xl font-bold text-[var(--text-primary)]">{userScore}</p>
                                     <p className="text-xs text-[var(--text-muted)] mt-1">Score</p>
                                 </div>
                                 <div className="p-3 rounded-xl bg-[var(--bg-elevated)]">
-                                    <p className="text-2xl font-bold text-[var(--accent-primary)]">-</p>
+                                    <p className="text-2xl font-bold text-[var(--accent-primary)]">#{userRank || '-'}</p>
                                     <p className="text-xs text-[var(--text-muted)] mt-1">Rank</p>
                                 </div>
                             </div>
