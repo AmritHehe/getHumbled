@@ -1,9 +1,10 @@
 import type { Request , Response } from "express";
-import { ContestSchema, GetAllContestSchema, GetContestSchema, MCQSchema } from "../validators/contest.schema";
+import { ContestSchema, createUsingAISchema, GetAllContestSchema, GetContestSchema, MCQSchema } from "../validators/contest.schema";
 import { prisma } from "@repo/database";
 import { success } from "zod";
 import { memo } from "react";
-
+import { generateText, type ModelMessage } from "ai";
+import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 
 export async function CreateContest(req : Request  , res : Response){ 
     // const safeData = UserController(req , res);
@@ -170,4 +171,111 @@ export async function GetAllContest(req : Request  , res : Response){
             message : "coudnt find the database"
         })
     }
+}
+
+export async function CreateContestWithAI(req: Request , res : Response){ 
+    const userId = req.userId
+    const role = req.role
+    if(role != 'ADMIN'){ 
+        return res.status(403).json({
+            success : false , 
+            message : "invalid role . please be a admin to access this endpoint" , 
+            error : "FORBIDDEN"
+        })
+    }
+    const { data  , success} = createUsingAISchema.safeParse(req.body) 
+    if(!success || !data){ 
+        return res.status(400).json({
+            success : false , 
+            message : "Invalid Schema",
+            error : "BAD_REQUEST"
+        })
+    }
+    const openRouter = createOpenRouter({
+        apiKey : process.env.OPENROUTER_API_KEY
+    })
+    let Context : ModelMessage[] = [
+        { 
+            role : "system",
+            content :  `You are an expert teacher who is creating test for his fellow students ,the user/student will provide you a topic and you have to create atleast 10 questions for it ! you can create more , I am using prisma create many thing so you have to only return an array of object , where each object will follow this exact schema model MCQ{
+                {
+                question String 
+                Solution MCQs
+                contestId String
+                points Int 
+                avgTTinMins Int @default(2)
+                }
+
+                the above schema is caseSenstive so keep that in mind 
+                follow the exact schema and return an array of objects , also how will all options store in database  weill you have to generate a question string  like this 
+
+                "
+                how many keys are there in keyboard
+
+                Options:
+                A) 100
+                B) 200
+                C) 300
+                D) 400
+                "
+                make sure to generate question string like above example as theres no seperate table to generate schema 
+                and the solution is enum of Captial A , B. , C , D , good luck 
+                `
+            
+        } , 
+        { 
+            role : "user" , 
+            content : data.prompt + "this is the contest ID u need to add in every question " + data.contestId
+        }
+    ]
+    const result = await generateText({
+        model  : openRouter("xiaomi/mimo-v2-flash"),
+        messages : Context , 
+        temperature : 0.2
+    })
+    console.log("result " + JSON.stringify(result))
+    console.log("^^^^^^^^^^^^^^^^^^^^^^^^^")
+    console.log("text" + result.text)
+    interface data { 
+        question : string ,
+        Solution :  "A" | "B" | "C" | "D"
+        contestId : string
+        points :  number 
+        avgTTinMins : number
+    }
+    console.log("type of data of result txt" + typeof(result.text))
+    const rawText = result.text.trim();
+
+    const jsonArrayString = rawText.match(/\[[\s\S]*\]/)?.[0];
+    if (!jsonArrayString) {
+    return res.status(500).json({
+        success: false,
+        message: "Invalid AI response format",
+    });
+    }
+
+    const dataArray = JSON.parse(jsonArrayString);
+
+    
+    try { 
+        const createAiTest = await prisma.mCQ.createMany({
+
+            data : dataArray
+        })
+        return res.status(200).json({
+            success : true ,
+            data : createAiTest,
+            message : "sucessfull"
+        })
+    }
+    catch(e) { 
+        return res.status(409).json({
+            success : false , 
+            data : "failed to create many in prisma with error" + e ,
+            error : "BAD_REQUEST"
+        })
+    }
+    return res.status(200).json({
+        data : result
+    })
 }

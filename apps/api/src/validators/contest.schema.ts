@@ -31,3 +31,8 @@ export const CodeSchema = z.object({
     Solution : z.string() , 
     avgTTinMins : z.int().optional()
 }) 
+
+export const createUsingAISchema = z.object({
+    prompt : z.string() ,
+    contestId : z.string()
+})
