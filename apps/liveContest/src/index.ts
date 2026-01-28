@@ -4,6 +4,8 @@ import { checkUser } from './middleware';
 import { redisClient } from './redisClient';
 import type { JwtPayload } from 'jsonwebtoken';
 import {submissions} from './submissionCron';
+import { StartsubmissionCron } from './submissionCron';
+
 
 
 const wss = new WebSocketServer({ port: 8080 });
@@ -26,7 +28,7 @@ interface contestSol {
         avgTTinMins: number;
     }[]
 }
-
+setTimeout(StartsubmissionCron , 3000)
 //leaderbaord should stay peristant , even if server crashes we should be able to recover it 
 // redis ? db call every 10-20 secs ? 
 
