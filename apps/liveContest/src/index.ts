@@ -3,6 +3,7 @@ import {prisma} from "@repo/database"
 import { checkUser } from './middleware';
 import { redisClient } from './redisClient';
 import type { JwtPayload } from 'jsonwebtoken';
+import {submissions} from './submissionCron';
 
 
 const wss = new WebSocketServer({ port: 8080 });
@@ -62,6 +63,11 @@ export async function addUserAnswerSubmission(questionId : string , answer: stri
             points
         })
     )
+    await redisClient.sAdd(
+        "submission:keys",
+        `submissions:${contestId}:${userId}`
+    )
+    await redisClient.incr("submission:version");
     console.log("adding user answer was sucessfull")
 }
 
@@ -91,6 +97,7 @@ wss.on('connection', async function connection(ws , request) {
 
     await addUserInDB(user.userId , "" , user.role )
     ws.on('message', async function message(data) {
+         console.log("data incoming" + data)
         let parseData ; 
         try { 
             parseData = JSON.parse(data as unknown as string);
@@ -102,11 +109,13 @@ wss.on('connection', async function connection(ws , request) {
                 data : null
            }))
         }
+      
         if(parseData.type === "init_contest"){ 
             // message request schema
             // { "type" : "init_contest" ,
             //   "contestId" : "cmkbrqsfq0001rrp3nr3t7qmd"
             // }
+            console.log("inside init contest")
             const contestId = parseData.contestId;
             const mcqDetails = await prisma.mCQ.findMany({
                 where : { 
@@ -158,6 +167,7 @@ wss.on('connection', async function connection(ws , request) {
             // ws.send("pushed the data to table " + JSON.stringify(mcqDetails))
         }
         if (parseData.type === "join_contest"){ 
+            console.log("inside join contest")
             //message schema
             // { 
             //    "type" : "join_contest" ,
@@ -194,9 +204,10 @@ wss.on('connection', async function connection(ws , request) {
                 console.log("sucess")
             }
             catch(e){ 
+                console.log("failed")
                 return ws.send(JSON.stringify({
                     success : false , 
-                    error : "user failed to join contest" ,
+                    error : "user failed to join contest"  + e,
                     data : null
                 }))
             }
@@ -219,6 +230,7 @@ wss.on('connection', async function connection(ws , request) {
         }
 
         if(parseData.type === "leave_contest"){ 
+            console.log("inside leave contest")
             const user = users.get(ws)
             // currenrly throughing user , practically , we need to make a db call here or just saved that persisted state
             if(!user){ 
@@ -236,13 +248,14 @@ wss.on('connection', async function connection(ws , request) {
         }
 
         if(parseData.type === "submit_answer"){ 
+            console.log("inside submit answer")
             // { 
             //     "type" : "submit_answer" ,
             //     "contestId" : "cmkbrqsfq0001rrp3nr3t7qmd" ,
             //     "questionId" : "cmkbrsj5x0005rrp30w7u7s1o" ,
             //     "answer" : "A"
             // }
-            const contestId = parseData.contestId; 
+            const contestId : string = parseData.contestId; 
             const questionId = parseData.questionId
             const answer = parseData.answer; 
             try{
@@ -310,6 +323,23 @@ wss.on('connection', async function connection(ws , request) {
                     await addUserAnswerSubmission(questionId , answer , userId , contestId , thisMCQSolution.points)
                     const addedSubmission = await redisClient.hGet(`submissions:${contestId}:${userId}`, questionId)
                     console.log("hget" +  addedSubmission)
+
+                    // const  prismaSubmit = await prisma.submissions.upsert({
+                    //     where : { 
+                    //        contestId : contestId, 
+                    //        userId : userId , 
+                    //        questionId : questionId
+                    //     } , 
+                    //     update : { 
+                    //         userId :  userId ,
+                    //         questionId : questionId , 
+                    //         selectedOption : answer , 
+                    //         isCorrect : true
+                    //     },
+                    //     create : parsedAllSubmissions
+                        
+                    // })
+                    //call submission here with submission data 
                     //leaderboard update krna hai yaha par redis mein
                     //send updated leaderboard
 
@@ -359,3 +389,10 @@ wss.on('connection', async function connection(ws , request) {
     })
     ws.send('ws handshake sucessfull');
 });
+// we need a function 
+//which will do db call everyone miniute - 
+
+//just learned that we need to idempotently update submissions , that is if submission cron is running it must not affect 
+// the already update one , meaning if you call a function lets say turn light on , calling it multiple times will keep the l
+//light on only(idempotent) but lets say u have a function known as balance , you cant call that function multiple times as calling it each time wull lead to increase balance everytime ( not idempotent
+
