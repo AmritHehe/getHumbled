@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { ArrowLeft, Plus, Edit, Trash2, Play, Pause, Brain, Code, FileQuestion } from 'lucide-react';
+import { ArrowLeft, Plus, Edit, Trash2, Play, Pause, Brain, Code, FileQuestion, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -75,6 +75,11 @@ export default function AdminContestDetailPage() {
                     <p className="text-[var(--text-secondary)]">{contest.discription}</p>
                 </div>
                 <div className="flex items-center gap-3">
+                    <Link href={`/admin/contests/${params.id}/ai`}>
+                        <Button variant="secondary" leftIcon={<Sparkles className="w-4 h-4" />}>
+                            Create with AI
+                        </Button>
+                    </Link>
                     <Link href={`/admin/contests/${params.id}/questions/new`}>
                         <Button variant="primary" leftIcon={<Plus className="w-4 h-4" />}>
                             Add Question
