@@ -46,7 +46,7 @@ export function QuestionCard({
             </div>
 
             {/* Question */}
-            <h3 className="text-xl font-medium text-[var(--text-primary)] mb-6">
+            <h3 className="text-xl font-medium text-[var(--text-primary)] mb-6 whitespace-pre-wrap">
                 {question}
             </h3>
 

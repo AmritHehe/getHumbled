@@ -136,6 +136,13 @@ class ApiClient {
             body: JSON.stringify(data),
         });
     }
+
+    async createQuestionsWithAI(data: { prompt: string; contestId: string }): Promise<ApiResponse<{ count: number }>> {
+        return this.request('/CreateContestAI', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+    }
 }
 
 export const api = new ApiClient();
