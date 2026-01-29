@@ -6,6 +6,7 @@ export const ContestSchema = z.object({
     discription : z.string().min(10).max(2000),
     type : z.enum(["DSA" , "DEV"]),
     status : z.enum([  "UPCOMING" ,"LIVE" ,"CLOSED"]),
+    mode : z.enum(["real" , "practice"]).default("real"),
     StartTime : z.coerce.date(), 
 })
 
@@ -33,6 +34,7 @@ export const CodeSchema = z.object({
 }) 
 
 export const createUsingAISchema = z.object({
+    mode : z.enum(["real" , "practice"]).default("real"),
     prompt : z.string() ,
     contestId : z.string()
 })

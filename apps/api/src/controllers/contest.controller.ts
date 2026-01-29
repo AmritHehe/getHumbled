@@ -1,8 +1,6 @@
 import type { Request , Response } from "express";
 import { ContestSchema, createUsingAISchema, GetAllContestSchema, GetContestSchema, MCQSchema } from "../validators/contest.schema";
 import { prisma } from "@repo/database";
-import { success } from "zod";
-import { memo } from "react";
 import { generateText, type ModelMessage } from "ai";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 
@@ -16,13 +14,15 @@ export async function CreateContest(req : Request  , res : Response){
         })
     }
     const role = req.role; 
-    if(role != "ADMIN"){ 
+    
+   
+    const {data , success , error} = ContestSchema.safeParse(req.body)
+     if(role != "ADMIN" &&  data?.mode != "practice" ){ 
         return res.status(403).json({
             success : false , 
             error : "wrong role ,acess forbidden"
         })
     }
-    const {data , success , error} = ContestSchema.safeParse(req.body)
     if(!success){ 
         return res.status(400).json({
             success : false , 
@@ -37,7 +37,8 @@ export async function CreateContest(req : Request  , res : Response){
                 discription : data.discription ,
                 status : data.status,
                 StartDate : new Date(),
-                createdBy : userId!
+                createdBy : userId! ,
+                mode : data.mode
             }
         })
         return res.status(200).json({
@@ -115,11 +116,29 @@ export async function GetContest(req : Request  , res : Response){
         let contest = await prisma.contests.findUnique({
             where : { 
                 id : contestId 
+                
             },
-            include : {
-                MCQ : true
+            select : { 
+                id : true,
+                srNo : true ,
+                title : true , 
+                discription : true ,
+                type : true , 
+                status : true , 
+                createdBy : true , 
+                mode : true , 
+                MCQ : { 
+                    select : { 
+                        id : true ,
+                        srNo : true , 
+                        question : true ,
+                        contestId : true , 
+                        points : true , 
+                        avgTTinMins : true
+                    }
+                }
             }
-        })
+        })      
         if(contest == null){ 
             return res.status(404).json({
                 success : false , 
@@ -176,14 +195,15 @@ export async function GetAllContest(req : Request  , res : Response){
 export async function CreateContestWithAI(req: Request , res : Response){ 
     const userId = req.userId
     const role = req.role
-    if(role != 'ADMIN'){ 
+    
+    const { data  , success} = createUsingAISchema.safeParse(req.body) 
+    if(role != 'ADMIN' && data?.mode != "practice"){ 
         return res.status(403).json({
             success : false , 
             message : "invalid role . please be a admin to access this endpoint" , 
             error : "FORBIDDEN"
         })
     }
-    const { data  , success} = createUsingAISchema.safeParse(req.body) 
     if(!success || !data){ 
         return res.status(400).json({
             success : false , 
