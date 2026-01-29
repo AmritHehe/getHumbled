@@ -40,6 +40,7 @@ model User {
   CreatedAt     DateTime?
   role          Role @default(USER)
   contest       Contests[]
+  submissions submissions[]
 }
 
 model Contests{ 
@@ -56,8 +57,13 @@ model Contests{
   leaderboard LeaderBoard?
   MCQ MCQ[]
   codeQ Code[]
+  submissions submissions[]
 
 }
+//we can add a type in contest that either its private or public or or or 
+// we can make a entire different public contest table 
+// I think changing the type of contest will rather be EASY , rather then deleting them from one table then putting them on another table 
+
 model MCQ{
   id String @id @default(cuid())
   srNo Int @default(autoincrement())
@@ -68,6 +74,7 @@ model MCQ{
   createdAt DateTime?
   points Int 
   avgTTinMins Int @default(2)
+  submissions submissions[]
 }
 model Code{
   id String @id @default(cuid())
@@ -85,9 +92,21 @@ model LeaderBoard{
   score Score[]
 }
 model Score{
-  id String @default(cuid()) @unique
+  id String @id @default(cuid()) @unique
   user String
   Rank String
   leaderBoard LeaderBoard @relation(fields: [leaderboardId] , references: [id] , onDelete: Cascade)
   leaderboardId String
+}
+model submissions{ 
+  id String @id @default(cuid())@unique
+  user User @relation(fields: [userId] , references: [id])
+  userId String 
+  contest Contests @relation(fields: [contestId], references: [id])
+  contestId String
+  mcq  MCQ @relation(fields: [questionId] , references: [id])
+  questionId String
+  selectedOption MCQs
+  isCorrect Boolean @default(false)
+  @@unique([userId , contestId , questionId])
 }
