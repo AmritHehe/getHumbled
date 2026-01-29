@@ -27,7 +27,7 @@ export default function CreateContestPage() {
 
         const response = await api.createContest({
             ...formData,
-            StartTime: new Date().toISOString(),
+            StartTime: new Date(),
         });
 
         if (response.success) {

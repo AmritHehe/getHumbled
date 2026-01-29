@@ -137,7 +137,7 @@ class ApiClient {
         });
     }
 
-    async createQuestionsWithAI(data: { prompt: string; contestId: string }): Promise<ApiResponse<{ count: number }>> {
+    async createQuestionsWithAI(data: { prompt: string; contestId: string; mode?: 'real' | 'practice' }): Promise<ApiResponse<{ count: number }>> {
         return this.request('/CreateContestAI', {
             method: 'POST',
             body: JSON.stringify(data),

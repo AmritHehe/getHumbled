@@ -102,6 +102,7 @@ export interface CreateContestData {
   type: ContestType;
   status: ContestStatus;
   StartTime: Date;
+  mode?: 'real' | 'practice';
 }
 
 export interface CreateMCQData {
