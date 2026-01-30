@@ -4,6 +4,7 @@ import { checkUser } from './middleware';
 import { redisClient } from './redisClient';
 import type { JwtPayload } from 'jsonwebtoken';
 import { StartsubmissionCron } from './submissionCron';
+import { success } from 'zod';
 
 
 
@@ -44,9 +45,10 @@ export async function  addUserInLeaderBoard( contestId : string , userName:strin
     })
     console.log("adding user in leaderboard sucessfull")
 }
-export async function  addUserInDB(userId : string , contestId : string , role : "USER" | "ADMIN") {
+export async function  addUserInRedis(userId : string , contestId : string , role : "USER" | "ADMIN") {
     await redisClient.hSet(`user:${userId}` , { 
         role : role , 
+        contestId : contestId
     })
     console.log("adding user in redis sucessfull")
 }
@@ -96,7 +98,7 @@ wss.on('connection', async function connection(ws , request) {
     })
         
 
-    await addUserInDB(user.userId , "" , user.role )
+    await addUserInRedis(user.userId , "" , user.role )
     ws.on('message', async function message(data) {
          console.log("data incoming" + data)
         let parseData ; 
@@ -199,6 +201,8 @@ wss.on('connection', async function connection(ws , request) {
                     data : null
                 }))
             }
+            user.contestId = parseData.contestId           
+            console.log("form join contest , user Contest ID " + user.contestId)
             const ParsedMCQ  =  JSON.parse(Solution)
             const randomQuestion = await GetRandomQuestion(contestId , user.userId , ParsedMCQ)
             console.log("randomQuestion which is not submitted by user " +  JSON.stringify(randomQuestion) )
@@ -208,7 +212,7 @@ wss.on('connection', async function connection(ws , request) {
             
             const existingUser  =  await redisClient.zScore(`leaderboard:${contestId}` , user.userId )
             const leaderbaord = await redisClient.zRangeWithScores(
-                `leaderboard:${user.contestId}` ,
+                `leaderboard:${contestId}` ,
                 0 , 
                 limit -1 , 
                 { REV : true}
@@ -223,7 +227,6 @@ wss.on('connection', async function connection(ws , request) {
                     }
                 }))
             }
-            user.contestId = parseData.contestId
             try{ 
                 await addUserInLeaderBoard(contestId , user.userId)
                 console.log("sucess")
@@ -291,12 +294,21 @@ wss.on('connection', async function connection(ws , request) {
                     }))
                 }
                 const userId =user.userId 
+                if(user.contestId != contestId){ 
+                    console.log("user Contest ID" + user.contestId + " real contest ID " + contestId)
+                    return ws.send(JSON.stringify({
+                        success : false , 
+                        error : "User doesnt belongs to this contest",
+                        data : null
+                    }))
+                }
                 // we need to somehow make a function which pulls out all the correct answers of that specific contest
                 // leaderboard logic in future
                 //very bad logic but lets try for now
                 //once a question is submitted , if user try to submit the question again it should give the error
                 //we should update the db first x
                 let StringifiedMCQ  : string | null = await redisClient.hGet(`contest:${contestId}` , "solution")
+
                 if(!StringifiedMCQ){ 
                     console.log("unable to find contest mcq in redis , fetching from db")
                     try { 
@@ -382,6 +394,14 @@ wss.on('connection', async function connection(ws , request) {
                         10 ,
                         { REV: true }
                     );
+                    //send updated leaderboard to everyone 
+                    for(const [ws , UsersData] of users){ 
+                        if(UsersData.contestId === contestId){ 
+                            ws.send(JSON.stringify({
+                                UpdatedLeaderboard : UpdatedLeaderBoard
+                            }))
+                        }
+                    }
                     // const questions = await redisClient.hGetAll(`contest:${contestId}`)
                     // console.log("questions " + JSON.stringify(questions))
                     const randomQuestion = await GetRandomQuestion(contestId , userId ,[...allMCQofThisContest] )
