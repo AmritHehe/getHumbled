@@ -128,3 +128,19 @@ export interface LeaderboardEntry {
   totalPoints: number;
   rank: number;
 }
+
+// Minimal MCQ returned from GetContest API (no question/solution - anti-cheat)
+export interface MCQMeta {
+  id: string;
+  contestId: string;
+}
+
+// Full question received from WebSocket (no solution - anti-cheat)
+export interface WSQuestion {
+  id: string;
+  srNo: number;
+  question: string;
+  createdAt: string | null;
+  points: number;
+  avgTTinMins: number;
+}

@@ -3,13 +3,13 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, ChevronLeft, ChevronRight, Send, CheckCircle, Wifi, WifiOff } from 'lucide-react';
+import { ArrowLeft, Send, CheckCircle, Wifi, WifiOff, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { QuestionCard } from '@/components/QuestionCard';
 import { Timer } from '@/components/Timer';
 import { LeaderboardTable } from '@/components/LeaderboardTable';
 import { api } from '@/lib/api';
-import type { Contest, MCQ, MCQOption } from '@/lib/types';
+import type { Contest, MCQOption, WSQuestion } from '@/lib/types';
 import toast from 'react-hot-toast';
 import { formatTime } from '@/lib/utils';
 
@@ -59,9 +59,14 @@ export default function LiveContestPage() {
 
     const [contest, setContest] = useState<Contest | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-    const [answers, setAnswers] = useState<Record<string, MCQOption>>({});
-    const [submittedQuestions, setSubmittedQuestions] = useState<Set<string>>(new Set());
+
+    // New state for sequential question flow
+    const [currentQuestion, setCurrentQuestion] = useState<WSQuestion | null>(null);
+    const [totalQuestions, setTotalQuestions] = useState(0);
+    const [answeredCount, setAnsweredCount] = useState(0);
+    const [selectedAnswer, setSelectedAnswer] = useState<MCQOption | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
     const [isCompleted, setIsCompleted] = useState(false);
     const startTimeRef = useRef<number>(Date.now());
     const [timeTaken, setTimeTaken] = useState(0);
@@ -76,16 +81,17 @@ export default function LiveContestPage() {
 
     // Transform backend leaderboard format to frontend format
     const transformLeaderboard = useCallback((data: { value: string; score: number }[]) => {
+        if (!data || !Array.isArray(data)) return [];
+
         const prevRanks = previousLeaderboardRef.current;
         const newEntries: LeaderboardEntry[] = data.map((entry, idx) => ({
             rank: idx + 1,
             userId: entry.value,
-            userName: entry.value, // Backend uses userId as value
+            userName: entry.value,
             totalPoints: entry.score,
             previousRank: prevRanks.get(entry.value),
         }));
 
-        // Update previous ranks for next update
         const newPrevRanks = new Map<string, number>();
         newEntries.forEach(e => newPrevRanks.set(e.userId, e.rank));
         previousLeaderboardRef.current = newPrevRanks;
@@ -105,6 +111,16 @@ export default function LiveContestPage() {
         }
     };
 
+    // Update user stats from leaderboard
+    const updateUserStats = useCallback((entries: LeaderboardEntry[]) => {
+        const userId = getUserIdFromToken();
+        const userEntry = entries.find(e => e.userId === userId);
+        if (userEntry) {
+            setUserScore(userEntry.totalPoints);
+            setUserRank(userEntry.rank);
+        }
+    }, []);
+
     // Connect to WebSocket
     useEffect(() => {
         if (!contestId) return;
@@ -117,97 +133,128 @@ export default function LiveContestPage() {
         }
 
         let hasJoined = false;
+        let hasSentInit = false;
         console.log('[WS] Connecting to:', WS_URL);
         const ws = new WebSocket(`${WS_URL}?token=${token}`);
         wsRef.current = ws;
 
         ws.onopen = () => {
-            console.log('WebSocket connected, sending init_contest...');
+            console.log('[WS] WebSocket connected, readyState:', ws.readyState);
             setWsConnected(true);
-
-            // First initialize the contest (caches solutions in Redis)
-            const initMsg = JSON.stringify({
-                type: 'init_contest',
-                contestId: contestId
-            });
-            console.log('Sending:', initMsg);
-            ws.send(initMsg);
         };
 
         ws.onmessage = (event) => {
-            console.log('Raw WS message received:', event.data);
+            console.log('[WS] Raw message received:', event.data);
 
-            // Skip non-JSON handshake message
+            // Handle handshake message - then send init_contest
             if (event.data === 'ws handshake sucessfull') {
-                console.log('WS handshake received, waiting for init_contest response...');
+                console.log('[WS] Handshake received, sending init_contest...');
+                if (!hasSentInit) {
+                    hasSentInit = true;
+                    const initMsg = JSON.stringify({
+                        type: 'init_contest',
+                        contestId: contestId
+                    });
+                    console.log('[WS] Sending:', initMsg);
+                    ws.send(initMsg);
+                }
                 return;
             }
 
             try {
                 const message = JSON.parse(event.data);
-                console.log('Parsed WS Message:', message);
+                console.log('[WS] Parsed message:', message);
 
-                // Handle init_contest response - then join (only once)
+                // Handle init_contest response - then join
                 if (!hasJoined && (message.message === 'redis init was sucessfull' || message.error === 'solution already exist')) {
                     hasJoined = true;
                     console.log('[WS] Contest initialized, sending join_contest...');
-                    ws.send(JSON.stringify({
+                    const joinMsg = JSON.stringify({
                         type: 'join_contest',
                         contestId: contestId
-                    }));
+                    });
+                    console.log('[WS] Sending:', joinMsg);
+                    ws.send(joinMsg);
                     return;
                 }
 
-                // Handle join_contest response
-                if (message.message === 'sucessfully joined the contest' && message.data) {
-                    console.log('Joined contest! Leaderboard data:', message.data);
-                    const entries = message.data.map((entry: { value: string; score: number }, idx: number) => ({
-                        rank: idx + 1,
-                        userId: entry.value,
-                        userName: entry.value,
-                        totalPoints: entry.score,
-                    }));
-                    setLeaderboard(entries);
+                // Handle join_contest response - includes both new join and rejoin
+                if ((message.message === 'sucessfully joined the contest' || message.message === 'User Rejoined the contest') && message.data) {
+                    console.log('[WS] Joined/Rejoined contest! Data:', message.data);
 
-                    const userId = getUserIdFromToken();
-                    const userEntry = entries.find((e: LeaderboardEntry) => e.userId === userId);
-                    if (userEntry) {
-                        setUserScore(userEntry.totalPoints);
-                        setUserRank(userEntry.rank);
+                    // Set leaderboard
+                    if (message.data.leaderbaord) {
+                        const entries = transformLeaderboard(message.data.leaderbaord);
+                        setLeaderboard(entries);
+                        updateUserStats(entries);
+                    }
+
+                    // Set first question from randomQuestion
+                    if (message.data.randomQuestion) {
+                        console.log('[WS] Setting question:', message.data.randomQuestion);
+                        setCurrentQuestion(message.data.randomQuestion);
+                        setSelectedAnswer(null);
+                    } else {
+                        // No questions left - user already completed this quiz
+                        console.log('[WS] No questions left - quiz already completed');
+                        handleFinishContest();
                     }
                     return;
                 }
 
                 // Handle submit_answer correct response
                 if (message.success && message.error === 'correct' && message.data) {
-                    console.log('Correct answer! Updated leaderboard:', message.data);
+                    console.log('Correct answer! Data:', message.data);
                     toast.success('Correct answer! +10 points');
-                    const entries = message.data.map((entry: { value: string; score: number }, idx: number) => ({
-                        rank: idx + 1,
-                        userId: entry.value,
-                        userName: entry.value,
-                        totalPoints: entry.score,
-                    }));
-                    setLeaderboard(entries);
+                    setIsSubmitting(false);
+                    setAnsweredCount(prev => prev + 1);
 
-                    const userId = getUserIdFromToken();
-                    const userEntry = entries.find((e: LeaderboardEntry) => e.userId === userId);
-                    if (userEntry) {
-                        setUserScore(userEntry.totalPoints);
-                        setUserRank(userEntry.rank);
+                    // Update leaderboard
+                    if (message.data.UpdatedLeaderBoard) {
+                        const entries = transformLeaderboard(message.data.UpdatedLeaderBoard);
+                        setLeaderboard(entries);
+                        updateUserStats(entries);
+                    }
+
+                    // Set next question or complete
+                    if (message.data.randomQuestion) {
+                        setCurrentQuestion(message.data.randomQuestion);
+                        setSelectedAnswer(null);
+                    } else {
+                        // No more questions - quiz complete
+                        handleFinishContest();
                     }
                     return;
                 }
 
-                // Handle incorrect answer
+                // Handle incorrect answer - now includes randomQuestion
                 if (message.error === 'incorrect') {
+                    console.log('Wrong answer! Data:', message.data);
                     toast('Wrong answer', { icon: '❌' });
+                    setIsSubmitting(false);
+                    setAnsweredCount(prev => prev + 1);
+
+                    // Set next question or complete
+                    if (message.data?.randomQuestion) {
+                        setCurrentQuestion(message.data.randomQuestion);
+                        setSelectedAnswer(null);
+                    } else {
+                        handleFinishContest();
+                    }
                     return;
                 }
 
-                // Handle already submitted
+                // Handle already submitted - silently show next question (no count increment)
                 if (message.error === 'submission already exist') {
-                    toast.error('Already submitted this question');
+                    console.log('[WS] Duplicate question, showing next one');
+                    setIsSubmitting(false);
+                    if (message.data?.randomQuestion) {
+                        setCurrentQuestion(message.data.randomQuestion);
+                        setSelectedAnswer(null);
+                    } else {
+                        // No more questions - quiz complete
+                        handleFinishContest();
+                    }
                     return;
                 }
 
@@ -241,15 +288,17 @@ export default function LiveContestPage() {
             }
             ws.close();
         };
-    }, [contestId, router]);
+    }, [contestId, router, transformLeaderboard, updateUserStats]);
 
-    // Fetch contest data
+    // Fetch contest data (for metadata only - questions come via WS)
     useEffect(() => {
         async function fetchContest() {
             if (!contestId) return;
             const response = await api.getContest(contestId);
             if (response.success && response.data) {
                 setContest(response.data);
+                // Set total questions from MCQ array length
+                setTotalQuestions(response.data.MCQ?.length || 0);
             } else {
                 toast.error('Failed to load contest');
             }
@@ -259,26 +308,9 @@ export default function LiveContestPage() {
         fetchContest();
     }, [contestId]);
 
-    if (isLoading) {
-        return <div className="min-h-screen flex items-center justify-center">Loading contest...</div>;
-    }
-
-    if (!contest) {
-        return <div className="min-h-screen flex items-center justify-center">Contest not found</div>;
-    }
-
-    const mcqQuestions = (contest.MCQ || []).sort((a, b) => a.srNo - b.srNo);
-    const totalQuestions = mcqQuestions.length;
-    const currentQuestionData = mcqQuestions[currentQuestionIndex];
-    const totalDurationSeconds = mcqQuestions.reduce((acc, q) => acc + ((q.avgTTinMins || 2) * 60), 0);
-
-    const parsedQuestion = currentQuestionData
-        ? parseQuestion(currentQuestionData.question, currentQuestionData.srNo)
-        : null;
-
     const handleSelectAnswer = (answer: MCQOption) => {
-        if (!currentQuestionData || submittedQuestions.has(currentQuestionData.id)) return;
-        setAnswers({ ...answers, [currentQuestionData.id]: answer });
+        if (isSubmitting) return;
+        setSelectedAnswer(answer);
     };
 
     const handleFinishContest = () => {
@@ -289,48 +321,48 @@ export default function LiveContestPage() {
     };
 
     const handleSubmitAnswer = () => {
-        if (!currentQuestionData || !answers[currentQuestionData.id]) return;
+        if (!currentQuestion || !selectedAnswer || isSubmitting) return;
+
+        setIsSubmitting(true);
 
         // Send answer via WebSocket
         if (wsRef.current?.readyState === WebSocket.OPEN) {
             wsRef.current.send(JSON.stringify({
                 type: 'submit_answer',
                 contestId: contestId,
-                questionId: currentQuestionData.id,
-                answer: answers[currentQuestionData.id]
+                questionId: currentQuestion.id,
+                answer: selectedAnswer
             }));
         } else {
             toast.error('Connection lost. Please refresh.');
-            return;
-        }
-
-        const newSet = new Set(submittedQuestions);
-        newSet.add(currentQuestionData.id);
-        setSubmittedQuestions(newSet);
-
-        // Auto advance
-        setTimeout(() => {
-            if (currentQuestionIndex < totalQuestions - 1) {
-                setCurrentQuestionIndex(prev => prev + 1);
-            } else {
-                handleFinishContest();
-            }
-        }, 800);
-    };
-
-    const handleNext = () => {
-        if (currentQuestionIndex < totalQuestions - 1) {
-            setCurrentQuestionIndex(currentQuestionIndex + 1);
-        }
-    };
-
-    const handlePrevious = () => {
-        if (currentQuestionIndex > 0) {
-            setCurrentQuestionIndex(currentQuestionIndex - 1);
+            setIsSubmitting(false);
         }
     };
 
     const userId = getUserIdFromToken();
+
+    // Calculate estimated duration
+    const estimatedDuration = totalQuestions * 2 * 60; // 2 min per question default
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="flex items-center gap-3 text-[var(--text-muted)]">
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Loading contest...
+                </div>
+            </div>
+        );
+    }
+
+    if (!contest) {
+        return <div className="min-h-screen flex items-center justify-center">Contest not found</div>;
+    }
+
+    // Parse current question for display
+    const parsedQuestion = currentQuestion
+        ? parseQuestion(currentQuestion.question, currentQuestion.srNo)
+        : null;
 
     if (isCompleted) {
         return (
@@ -351,8 +383,8 @@ export default function LiveContestPage() {
                             <p className="text-xl font-mono font-semibold text-[var(--text-primary)]">{formatTime(timeTaken)}</p>
                         </div>
                         <div>
-                            <p className="text-sm text-[var(--text-muted)] mb-1">Total Time</p>
-                            <p className="text-xl font-mono font-semibold text-[var(--text-primary)]">{formatTime(totalDurationSeconds)}</p>
+                            <p className="text-sm text-[var(--text-muted)] mb-1">Questions</p>
+                            <p className="text-xl font-mono font-semibold text-[var(--text-primary)]">{answeredCount} / {totalQuestions}</p>
                         </div>
                     </div>
 
@@ -406,91 +438,62 @@ export default function LiveContestPage() {
                                 )}
                             </div>
                             <p className="text-xs text-[var(--text-muted)]">
-                                Question {currentQuestionIndex + 1} of {totalQuestions}
+                                {answeredCount} of {totalQuestions} answered
                             </p>
                         </div>
                     </div>
-                    <Timer initialSeconds={totalDurationSeconds} onTimeUp={handleFinishContest} />
+                    <Timer initialSeconds={estimatedDuration} onTimeUp={handleFinishContest} />
                 </div>
             </header>
+
+            {/* Progress Bar */}
+            <div className="h-1 bg-[var(--bg-elevated)]">
+                <div
+                    className="h-full bg-[var(--accent)] transition-all duration-500"
+                    style={{ width: `${totalQuestions > 0 ? (answeredCount / totalQuestions) * 100 : 0}%` }}
+                />
+            </div>
 
             {/* Main Content */}
             <main className="flex-1 container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
                     {/* Question Section */}
                     <div className="lg:col-span-8 flex flex-col gap-6">
-                        {parsedQuestion ? (
+                        {currentQuestion && parsedQuestion ? (
                             <>
                                 <QuestionCard
-                                    questionNumber={currentQuestionIndex + 1}
+                                    questionNumber={answeredCount + 1}
                                     totalQuestions={totalQuestions}
                                     question={parsedQuestion.question}
                                     options={parsedQuestion.options}
-                                    selectedAnswer={answers[currentQuestionData.id]}
+                                    selectedAnswer={selectedAnswer || undefined}
                                     onSelectAnswer={handleSelectAnswer}
-                                    points={currentQuestionData.points}
-                                    avgTime={currentQuestionData.avgTTinMins}
-                                    isSubmitted={submittedQuestions.has(currentQuestionData.id)}
+                                    points={currentQuestion.points}
+                                    avgTime={currentQuestion.avgTTinMins}
+                                    isSubmitted={false}
                                 />
 
-                                {/* Navigation */}
-                                <div className="flex items-center justify-between mt-auto">
+                                {/* Submit Button - Only action available */}
+                                <div className="flex items-center justify-end">
                                     <Button
-                                        variant="secondary"
-                                        onClick={handlePrevious}
-                                        disabled={currentQuestionIndex === 0}
-                                        leftIcon={<ChevronLeft className="w-4 h-4" />}
+                                        variant="primary"
+                                        onClick={handleSubmitAnswer}
+                                        disabled={!selectedAnswer || isSubmitting}
+                                        leftIcon={isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                                     >
-                                        Previous
+                                        {isSubmitting ? 'Submitting...' : 'Submit Answer'}
                                     </Button>
-
-                                    <div className="flex items-center gap-3">
-                                        {!submittedQuestions.has(currentQuestionData.id) && answers[currentQuestionData.id] && (
-                                            <Button
-                                                variant="primary"
-                                                onClick={handleSubmitAnswer}
-                                                leftIcon={<Send className="w-4 h-4" />}
-                                            >
-                                                {currentQuestionIndex === totalQuestions - 1 ? 'Submit & Finish' : 'Submit Answer'}
-                                            </Button>
-                                        )}
-
-                                        <Button
-                                            variant="secondary"
-                                            onClick={handleNext}
-                                            disabled={currentQuestionIndex === totalQuestions - 1}
-                                            rightIcon={<ChevronRight className="w-4 h-4" />}
-                                        >
-                                            Next
-                                        </Button>
-                                    </div>
                                 </div>
 
-                                {/* Question Navigator */}
-                                <div className="border-t border-[var(--border)] pt-6 mt-2">
-                                    <div className="flex flex-wrap gap-2">
-                                        {mcqQuestions.map((q, idx) => (
-                                            <button
-                                                key={q.id}
-                                                onClick={() => setCurrentQuestionIndex(idx)}
-                                                className={`w-10 h-10 rounded-lg font-medium text-sm transition-all shadow-sm ${idx === currentQuestionIndex
-                                                    ? 'bg-[var(--accent-primary)] text-white ring-2 ring-[var(--accent-primary)] ring-offset-2 ring-offset-[var(--bg-secondary)]'
-                                                    : submittedQuestions.has(q.id)
-                                                        ? 'bg-green-500/10 text-green-600 border border-green-500/20 hover:bg-green-500/20'
-                                                        : answers[q.id]
-                                                            ? 'bg-amber-500/10 text-amber-600 border border-amber-500/20 hover:bg-amber-500/20'
-                                                            : 'bg-[var(--bg-card)] text-[var(--text-secondary)] border border-[var(--border)] hover:border-[var(--border-hover)]'
-                                                    }`}
-                                            >
-                                                {idx + 1}
-                                            </button>
-                                        ))}
-                                    </div>
+                                {/* Info notice */}
+                                <div className="text-center text-sm text-[var(--text-muted)] py-4 border-t border-[var(--border)]">
+                                    Questions are delivered randomly. You cannot go back after submitting.
                                 </div>
                             </>
                         ) : (
                             <div className="text-center py-20 text-[var(--text-muted)] bg-[var(--bg-card)] rounded-2xl border border-[var(--border)]">
-                                No questions available in this contest.
+                                <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
+                                <p>Waiting for question...</p>
                             </div>
                         )}
                     </div>
