@@ -6,6 +6,7 @@ import type { JwtPayload } from 'jsonwebtoken';
 import { StartsubmissionCron } from './submissionCron';
 
 
+
 const wss = new WebSocketServer({ port: 8080 });
 
 const users = new Map<WebSocket, {
@@ -121,14 +122,6 @@ wss.on('connection', async function connection(ws , request) {
                 where : { 
                     contestId : contestId
                 },
-                select : { 
-                    id : true , 
-                    srNo : true , 
-                    question : true , 
-                    createdAt : true , 
-                    points : true , 
-                    avgTTinMins : true
-                }
             })
             if(mcqDetails.length === 0){
                 console.log("no mcqs found in the upcming contest")
@@ -175,12 +168,12 @@ wss.on('connection', async function connection(ws , request) {
             // ws.send("pushed the data to table " + JSON.stringify(mcqDetails))
         }
         if (parseData.type === "join_contest"){ 
-            console.log("inside join contest")
-            //message schema
+             //message schema
             // { 
             //    "type" : "join_contest" ,
             //    "contestId" : "cmkbrqsfq0001rrp3nr3t7qmd"
             //  }
+            console.log("inside join contest")
             const user =users.get(ws)
             const contestId = parseData.contestId
             if(!contestId){ 
@@ -198,12 +191,36 @@ wss.on('connection', async function connection(ws , request) {
                     data : null
                 }))
             }
-            const existingUser  =  await redisClient.zScore(`leaderboard:${contestId}` , user.userId )
-            if(existingUser!= null){ 
+            const Solution =  await redisClient.hGet(`contest:${contestId}` , "solution")
+            if(Solution == null){ 
                 return ws.send(JSON.stringify({
                     success : false , 
-                    error : "User already joined the contest" ,
+                    error : "init wasnt sucessfull",
                     data : null
+                }))
+            }
+            const ParsedMCQ  =  JSON.parse(Solution)
+            const randomQuestion = await GetRandomQuestion(contestId , user.userId , ParsedMCQ)
+            console.log("randomQuestion which is not submitted by user " +  JSON.stringify(randomQuestion) )
+            const limit = 10
+            
+           
+            
+            const existingUser  =  await redisClient.zScore(`leaderboard:${contestId}` , user.userId )
+            const leaderbaord = await redisClient.zRangeWithScores(
+                `leaderboard:${user.contestId}` ,
+                0 , 
+                limit -1 , 
+                { REV : true}
+            )
+            if(existingUser!= null){ 
+                return ws.send(JSON.stringify({
+                    success : true , 
+                    message : "User Rejoined the contest" ,
+                    data : { 
+                        leaderbaord : leaderbaord ,
+                        randomQuestion : randomQuestion
+                    }
                 }))
             }
             user.contestId = parseData.contestId
@@ -219,18 +236,11 @@ wss.on('connection', async function connection(ws , request) {
                     data : null
                 }))
             }
-            const limit = 10
-            const leaderbaord = await redisClient.zRangeWithScores(
-                `leaderboard:${user.contestId}` ,
-                0 , 
-                limit -1 , 
-                { REV : true}
-            )
+            
             console.log("user joined sucessfully")
-            console.log("leaderboard" + JSON.stringify(leaderbaord))
+            // console.log("leaderboard" + JSON.stringify(leaderbaord))
             console.log("sucessfully joined the contest")
-            const randomQuestion = await GetRandomQuestion(contestId , user.userId)
-            console.log("randomQuestion which is not submitted by user " +  JSON.stringify(randomQuestion) )
+           
             return ws.send(JSON.stringify({
                 success : true , 
                 message : "sucessfully joined the contest" ,
@@ -280,17 +290,7 @@ wss.on('connection', async function connection(ws , request) {
                         data : null
                     }))
                 }
-                const userId =user.userId
-                const AlreadyScored = await redisClient.hGet(`submissions:${contestId}:${userId}` , questionId)
-                console.log("already exisited soluton " + AlreadyScored)
-                if(AlreadyScored){ 
-                    return ws.send(JSON.stringify({
-                        success : false , 
-                        error : "submission already exist" ,
-                        data : null
-                    }))
-   
-                }
+                const userId =user.userId 
                 // we need to somehow make a function which pulls out all the correct answers of that specific contest
                 // leaderboard logic in future
                 //very bad logic but lets try for now
@@ -319,7 +319,24 @@ wss.on('connection', async function connection(ws , request) {
                     }
                 }
                 const allMCQofThisContest = JSON.parse(StringifiedMCQ!)
+                const AlreadyScored = await redisClient.hGet(`submissions:${contestId}:${userId}` , questionId)
+                // console.log("already exisited soluton " + AlreadyScored)
+                if(AlreadyScored){ 
+                    const randomQuestion = await GetRandomQuestion(contestId , userId ,[...allMCQofThisContest] )
+                    return ws.send(JSON.stringify({
+                        success : false , 
+                        error : "submission already exist" ,
+                        data : { 
+                            randomQuestion : randomQuestion
+                        }
+                    }))
+   
+                }
+
+                // console.log("randomQuestion which is not submitted by user " +  JSON.stringify(randomQuestion) )
+
                 const thisMCQSolution = allMCQofThisContest?.find((x : any)=> x.id === questionId)
+                
                 if(thisMCQSolution == null){ 
                     console.log("failed to find the mcq at db")
                     return ws.send(JSON.stringify({
@@ -334,7 +351,7 @@ wss.on('connection', async function connection(ws , request) {
                     console.log("correct answerr")   
                     await addUserAnswerSubmission(questionId , answer , userId , contestId , thisMCQSolution.points)
                     const addedSubmission = await redisClient.hGet(`submissions:${contestId}:${userId}`, questionId)
-                    console.log("hget" +  addedSubmission)
+                    // console.log("hget" +  addedSubmission)
 
                     // const  prismaSubmit = await prisma.submissions.upsert({
                     //     where : { 
@@ -367,8 +384,7 @@ wss.on('connection', async function connection(ws , request) {
                     );
                     // const questions = await redisClient.hGetAll(`contest:${contestId}`)
                     // console.log("questions " + JSON.stringify(questions))
-                    const randomQuestion = await GetRandomQuestion(contestId , userId)
-                    console.log("randomQuestion which is not submitted by user " +  JSON.stringify(randomQuestion) )
+                    const randomQuestion = await GetRandomQuestion(contestId , userId ,[...allMCQofThisContest] )
                     return ws.send(JSON.stringify({
                         success : true , 
                         error : "correct",
@@ -379,9 +395,9 @@ wss.on('connection', async function connection(ws , request) {
                 }
                 else{
                     console.log("Wrong answer")
-                    const randomQuestion = await GetRandomQuestion(contestId , userId)
-                    console.log("randomQuestion which is not submitted by user " +  JSON.stringify(randomQuestion) )
+                    console.log("right answer " + correctAnswer )
                     await addUserAnswerSubmission(questionId , answer , userId , contestId , 0 )
+                    const randomQuestion = await GetRandomQuestion(contestId , userId ,[...allMCQofThisContest] )
                     return ws.send(JSON.stringify({
                         success : true , 
                         error : "incorrect",
@@ -426,22 +442,32 @@ function GetRandomIndex( arrayLength : number) : number{
     return randomIndex
 
 }
-async function GetRandomQuestion(contestId : string , userId : string )  : Promise<object> { 
-    const questions = await redisClient.hGet(`contest:${contestId}` , "solution")
-    if(!questions){ 
+async function GetRandomQuestion(contestId : string , userId : string , remaining : any[]  )  : Promise<any> { 
+
+    const ParsedQuestions = remaining
+    if(!ParsedQuestions){ 
         console.log("tell amrit to fix his code")
         
     }
     // console.log("questions " + questions)
-
-    const ParsedQuestions = JSON.parse(questions!)
+    if( remaining.length <= 0 ){ 
+        console.log("no More questions left")
+        return  undefined
+    }
+   
     const randomIndex = GetRandomIndex(ParsedQuestions.length)
     let randomQuestionId = ParsedQuestions[randomIndex].id 
-    
+
     if((await redisClient.hGet(`submissions:${contestId}:${userId}` , randomQuestionId)) != null) { 
-        console.log("recursion got called " )
-       await GetRandomQuestion(contestId , userId)
+        remaining.splice(randomIndex , 1)
+      
+       return await GetRandomQuestion(contestId , userId ,  remaining)
     }
-    console.log("random Question " + JSON.stringify(ParsedQuestions[randomIndex]))
-    return ParsedQuestions[randomIndex]
+    else { 
+        const RandomQuestion = ParsedQuestions[randomIndex]
+        delete RandomQuestion.Solution
+        console.log("random Question " + JSON.stringify(RandomQuestion))
+        return RandomQuestion
+    }
+
 }
