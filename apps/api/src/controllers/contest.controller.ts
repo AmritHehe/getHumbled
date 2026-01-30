@@ -130,11 +130,8 @@ export async function GetContest(req : Request  , res : Response){
                 MCQ : { 
                     select : { 
                         id : true ,
-                        srNo : true , 
-                        question : true ,
                         contestId : true , 
-                        points : true , 
-                        avgTTinMins : true
+   
                     }
                 }
             }
