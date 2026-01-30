@@ -77,7 +77,21 @@ export default function LiveContestPage() {
     const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
     const [userScore, setUserScore] = useState(0);
     const [userRank, setUserRank] = useState<number | null>(null);
+    const [userId, setUserId] = useState<string | null>(null);
     const previousLeaderboardRef = useRef<Map<string, number>>(new Map());
+
+    // Get user ID from token on client side only
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const token = localStorage.getItem('token');
+            if (token) {
+                try {
+                    const payload = JSON.parse(atob(token.split('.')[1]));
+                    setUserId(payload.userId);
+                } catch { }
+            }
+        }
+    }, []);
 
     // Transform backend leaderboard format to frontend format
     const transformLeaderboard = useCallback((data: { value: string; score: number }[]) => {
@@ -99,8 +113,9 @@ export default function LiveContestPage() {
         return newEntries;
     }, []);
 
-    // Get current user ID from token
-    const getUserIdFromToken = () => {
+    // Get current user ID from token (client-side only)
+    const getUserIdFromToken = useCallback(() => {
+        if (typeof window === 'undefined') return null;
         const token = localStorage.getItem('token');
         if (!token) return null;
         try {
@@ -109,7 +124,7 @@ export default function LiveContestPage() {
         } catch {
             return null;
         }
-    };
+    }, []);
 
     // Update user stats from leaderboard
     const updateUserStats = useCallback((entries: LeaderboardEntry[]) => {
@@ -264,6 +279,15 @@ export default function LiveContestPage() {
                     return;
                 }
 
+                // Handle live leaderboard broadcast (from other users' correct submissions)
+                if (message.UpdatedLeaderboard) {
+                    console.log('[WS] Live leaderboard broadcast:', message.UpdatedLeaderboard);
+                    const entries = transformLeaderboard(message.UpdatedLeaderboard);
+                    setLeaderboard(entries);
+                    updateUserStats(entries);
+                    return;
+                }
+
                 console.log('Unhandled message:', message);
 
             } catch (e) {
@@ -339,7 +363,7 @@ export default function LiveContestPage() {
         }
     };
 
-    const userId = getUserIdFromToken();
+    // userId is now from state set in useEffect
 
     // Calculate estimated duration
     const estimatedDuration = totalQuestions * 2 * 60; // 2 min per question default
@@ -499,26 +523,65 @@ export default function LiveContestPage() {
                     </div>
 
                     {/* Leaderboard Sidebar */}
-                    <div className="lg:col-span-4 space-y-6">
-                        <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border)] p-6 shadow-sm h-fit">
-                            <div className="flex items-center justify-between mb-4">
-                                <h2 className="text-lg font-semibold text-[var(--text-primary)]">Live Leaderboard</h2>
+                    <div className="lg:col-span-4 space-y-4">
+                        <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border)] p-4 shadow-sm">
+                            <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-2">
+                                    <h2 className="font-semibold text-[var(--text-primary)]">Leaderboard</h2>
+                                    <span className="text-xs bg-green-500/10 text-green-500 px-2 py-0.5 rounded-full font-medium">
+                                        LIVE
+                                    </span>
+                                </div>
                                 <Link
                                     href={`/contests/${contestId}/leaderboard`}
-                                    className="text-sm text-[var(--accent-primary)] hover:underline font-medium"
+                                    className="text-xs text-[var(--accent-primary)] hover:underline font-medium"
                                 >
-                                    Full View
+                                    View All →
                                 </Link>
                             </div>
 
                             {leaderboard.length > 0 ? (
-                                <LeaderboardTable
-                                    entries={leaderboard.slice(0, 10)}
-                                    currentUserId={userId || undefined}
-                                    showTrend={true}
-                                />
+                                <div className="space-y-1.5 max-h-[240px] overflow-y-auto">
+                                    {leaderboard.map((entry, idx) => {
+                                        const isMe = entry.userId === userId;
+                                        const displayName = entry.userName.length > 12
+                                            ? entry.userName.slice(0, 12) + '…'
+                                            : entry.userName;
+
+                                        return (
+                                            <div
+                                                key={entry.userId}
+                                                className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-all ${isMe
+                                                    ? 'bg-[var(--accent-primary)]/10 ring-1 ring-[var(--accent-primary)]/30'
+                                                    : 'bg-[var(--bg-elevated)] hover:bg-[var(--bg-secondary)]'
+                                                    }`}
+                                            >
+                                                {/* Rank Badge */}
+                                                <div className={`w-7 h-7 rounded-md flex items-center justify-center font-bold text-xs shrink-0 ${idx === 0 ? 'bg-yellow-500 text-black' :
+                                                    idx === 1 ? 'bg-gray-400 text-black' :
+                                                        idx === 2 ? 'bg-amber-600 text-white' :
+                                                            'bg-[var(--bg-card)] text-[var(--text-muted)] border border-[var(--border)]'
+                                                    }`}>
+                                                    {idx + 1}
+                                                </div>
+
+                                                {/* Name */}
+                                                <span className={`flex-1 text-sm font-medium truncate ${isMe ? 'text-[var(--accent-primary)]' : 'text-[var(--text-primary)]'
+                                                    }`}>
+                                                    {displayName}
+                                                    {isMe && <span className="text-[10px] ml-1 opacity-60">(You)</span>}
+                                                </span>
+
+                                                {/* Score */}
+                                                <span className="font-mono font-bold text-sm text-[var(--text-primary)] shrink-0">
+                                                    {entry.totalPoints}
+                                                </span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
                             ) : (
-                                <div className="py-8 text-center text-[var(--text-muted)] text-sm bg-[var(--bg-elevated)] rounded-xl border border-dashed border-[var(--border)]">
+                                <div className="py-6 text-center text-[var(--text-muted)] text-sm bg-[var(--bg-elevated)] rounded-lg border border-dashed border-[var(--border)]">
                                     {wsConnected ? 'Waiting for participants...' : 'Connecting...'}
                                 </div>
                             )}
