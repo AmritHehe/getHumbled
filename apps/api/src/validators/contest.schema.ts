@@ -8,6 +8,7 @@ export const ContestSchema = z.object({
     status : z.enum([  "UPCOMING" ,"LIVE" ,"CLOSED"]),
     mode : z.enum(["real" , "practice"]).default("real"),
     StartTime : z.coerce.date(), 
+    ContestTotalTime : z.number().default(60)
 })
 
 export const MCQSchema = z.object({

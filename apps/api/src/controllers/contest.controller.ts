@@ -6,6 +6,7 @@ import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { fetchSolution, MCQSolutionMap } from "../cache/solutionCache";
 import { GetRandomQuestion } from "../services/getRandomQuestion";
 import { use } from "react";
+import { getContestState } from "../services/getContestState";
 
 export async function CreateContest(req : Request  , res : Response){ 
     // const safeData = UserController(req , res);
@@ -41,6 +42,7 @@ export async function CreateContest(req : Request  , res : Response){
                 status : data.status,
                 StartDate : new Date(),
                 createdBy : userId! ,
+                ContestTotalTime : data.ContestTotalTime , 
                 mode : data.mode
             }
         })
@@ -115,6 +117,7 @@ export async function GetContest(req : Request  , res : Response){
         })
     }
     const contestId = data.contestId ; 
+    
     try { 
         let contest = await prisma.contests.findUnique({
             where : { 
@@ -130,6 +133,9 @@ export async function GetContest(req : Request  , res : Response){
                 status : true , 
                 createdBy : true , 
                 mode : true , 
+                ContestTotalTime : true , 
+                StartDate : true , 
+                StartTime : true , 
                 MCQ : { 
                     select : { 
                         id : true ,
@@ -139,15 +145,24 @@ export async function GetContest(req : Request  , res : Response){
                 }
             }
         })      
+       
         if(contest == null){ 
             return res.status(404).json({
                 success : false , 
                 error : "contest not found"
             })
         }
+
+       const contestState = getContestState({
+            StartDate: contest.StartDate,
+            StartTime: contest.StartTime,
+            ContestTotalTime: contest.ContestTotalTime,
+            mode: contest.mode,
+         })
         return res.status(200).json({
             success : true , 
-            data : contest
+            data : contest , 
+            mode : contestState
         })
     }
     catch(e){ 
