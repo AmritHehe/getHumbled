@@ -113,5 +113,6 @@ model submissions{
   questionId String
   selectedOption MCQs
   isCorrect Boolean @default(false)
+  mode Mode @default(real)
   @@unique([userId , contestId , questionId])
 }
