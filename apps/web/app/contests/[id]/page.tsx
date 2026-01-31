@@ -3,15 +3,16 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { ArrowLeft, Calendar, Clock, Brain, Code, Play, Bell } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, Brain, Code, Play, Bell, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { api } from '@/lib/api';
-import type { Contest } from '@/lib/types';
+import type { Contest, ContestState } from '@/lib/types';
 import { formatDateTime } from '@/lib/utils';
 
 export default function ContestDetailPage() {
     const params = useParams();
     const [contest, setContest] = useState<Contest | null>(null);
+    const [contestState, setContestState] = useState<ContestState | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -20,6 +21,8 @@ export default function ContestDetailPage() {
             const response = await api.getContest(params.id as string);
             if (response.success && response.data) {
                 setContest(response.data);
+                // Backend returns 'mode' as the computed contest state
+                setContestState((response as any).mode || null);
             }
             setIsLoading(false);
         }
@@ -53,6 +56,67 @@ export default function ContestDetailPage() {
         );
     }
 
+    // Determine badge and action based on contest state
+    const getStateBadge = () => {
+        switch (contestState) {
+            case 'LIVE':
+                return (
+                    <span className="text-xs px-2 py-1 rounded bg-green-500/10 text-green-600 flex items-center gap-1">
+                        <span className="live-dot" /> Live Now
+                    </span>
+                );
+            case 'UPCOMING':
+                return (
+                    <span className="text-xs px-2 py-1 rounded bg-amber-500/10 text-amber-600">
+                        Upcoming
+                    </span>
+                );
+            case 'PRACTICE':
+                return (
+                    <span className="text-xs px-2 py-1 rounded bg-blue-500/10 text-blue-600 flex items-center gap-1">
+                        <BookOpen className="w-3 h-3" /> Practice Mode
+                    </span>
+                );
+            default:
+                return null;
+        }
+    };
+
+    const getActionButton = () => {
+        switch (contestState) {
+            case 'LIVE':
+                return (
+                    <Link href={`/contests/${contest.id}/live`}>
+                        <Button variant="primary" className="w-full" leftIcon={<Play className="w-4 h-4" />}>
+                            Join Contest
+                        </Button>
+                    </Link>
+                );
+            case 'PRACTICE':
+                return (
+                    <Link href={`/contests/${contest.id}/practice`}>
+                        <Button variant="primary" className="w-full" leftIcon={<BookOpen className="w-4 h-4" />}>
+                            Start Practice
+                        </Button>
+                    </Link>
+                );
+            case 'UPCOMING':
+                return (
+                    <Button variant="secondary" className="w-full" leftIcon={<Bell className="w-4 h-4" />}>
+                        Notify Me
+                    </Button>
+                );
+            default:
+                return (
+                    <Link href={`/contests/${contest.id}/leaderboard`}>
+                        <Button variant="secondary" className="w-full">
+                            View Results
+                        </Button>
+                    </Link>
+                );
+        }
+    };
+
     return (
         <div className="container py-8">
             {/* Back Link */}
@@ -67,21 +131,7 @@ export default function ContestDetailPage() {
             {/* Header */}
             <div className="mb-8">
                 <div className="flex flex-wrap items-center gap-2 mb-3">
-                    {contest.status === 'LIVE' && (
-                        <span className="text-xs px-2 py-1 rounded bg-green-500/10 text-green-600 flex items-center gap-1">
-                            <span className="live-dot" /> Live
-                        </span>
-                    )}
-                    {contest.status === 'UPCOMING' && (
-                        <span className="text-xs px-2 py-1 rounded bg-amber-500/10 text-amber-600">
-                            Upcoming
-                        </span>
-                    )}
-                    {contest.status === 'CLOSED' && (
-                        <span className="text-xs px-2 py-1 rounded bg-[var(--bg-elevated)] text-[var(--text-muted)]">
-                            Closed
-                        </span>
-                    )}
+                    {getStateBadge()}
                     <span className="text-xs px-2 py-1 rounded bg-[var(--bg-elevated)] text-[var(--text-muted)] flex items-center gap-1">
                         {contest.type === 'DSA' ? <Brain className="w-3 h-3" /> : <Code className="w-3 h-3" />}
                         {contest.type}
@@ -131,7 +181,8 @@ export default function ContestDetailPage() {
                         <ul className="space-y-2 text-sm text-[var(--text-secondary)]">
                             <li>• Points are awarded based on correctness and speed.</li>
                             <li>• You can submit multiple attempts for each question.</li>
-                            <li>• The leaderboard updates in real-time.</li>
+                            {contestState === 'LIVE' && <li>• The leaderboard updates in real-time.</li>}
+                            {contestState === 'PRACTICE' && <li>• Practice at your own pace with no time pressure.</li>}
                             <li>• Any form of cheating will result in disqualification.</li>
                         </ul>
                     </div>
@@ -146,25 +197,10 @@ export default function ContestDetailPage() {
                         <p className="text-sm text-[var(--text-muted)]">Questions</p>
                     </div>
 
-                    {contest.status === 'LIVE' ? (
-                        <Link href={`/contests/${contest.id}/live`}>
-                            <Button variant="primary" className="w-full" leftIcon={<Play className="w-4 h-4" />}>
-                                Join Contest
-                            </Button>
-                        </Link>
-                    ) : contest.status === 'UPCOMING' ? (
-                        <Button variant="secondary" className="w-full" leftIcon={<Bell className="w-4 h-4" />}>
-                            Notify Me
-                        </Button>
-                    ) : (
-                        <Link href={`/contests/${contest.id}/leaderboard`}>
-                            <Button variant="secondary" className="w-full">
-                                View Results
-                            </Button>
-                        </Link>
-                    )}
+                    {getActionButton()}
                 </div>
             </div>
         </div>
     );
 }
+

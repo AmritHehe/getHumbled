@@ -2,29 +2,43 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Search, Users } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 import { cn } from '@/lib/utils';
 import { api } from '@/lib/api';
-import type { Contest, ContestStatus } from '@/lib/types';
+import type { Contest, ContestStatus, ContestMode } from '@/lib/types';
 
-const statusFilters: { label: string; value: ContestStatus | 'ALL' }[] = [
+type FilterValue = 'ALL' | 'LIVE' | 'UPCOMING' | 'PRACTICE';
+
+const filters: { label: string; value: FilterValue }[] = [
     { label: 'All', value: 'ALL' },
     { label: 'Live', value: 'LIVE' },
     { label: 'Upcoming', value: 'UPCOMING' },
-    { label: 'Closed', value: 'CLOSED' },
+    { label: 'Practice', value: 'PRACTICE' },
 ];
 
 export default function ContestsPage() {
     const [contests, setContests] = useState<Contest[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [activeFilter, setActiveFilter] = useState<ContestStatus | 'ALL'>('ALL');
+    const [activeFilter, setActiveFilter] = useState<FilterValue>('ALL');
     const [searchQuery, setSearchQuery] = useState('');
 
     useEffect(() => {
         async function fetchContests() {
             setIsLoading(true);
-            const response = await api.getContests(activeFilter === 'ALL' ? 'ALL' : activeFilter);
+
+            // Build filters based on selection
+            let apiFilters: { status?: ContestStatus; mode?: ContestMode } | undefined;
+
+            if (activeFilter === 'LIVE') {
+                apiFilters = { status: 'LIVE' };
+            } else if (activeFilter === 'UPCOMING') {
+                apiFilters = { status: 'UPCOMING' };
+            } else if (activeFilter === 'PRACTICE') {
+                apiFilters = { mode: 'practice' };
+            }
+
+            const response = await api.getContests(apiFilters);
             if (response.success && response.data) {
                 setContests(response.data);
             } else {
@@ -40,10 +54,10 @@ export default function ContestsPage() {
             contest.discription.toLowerCase().includes(searchQuery.toLowerCase());
     });
 
-    // Sort: LIVE first, then UPCOMING, then CLOSED
+    // Sort: LIVE first, then UPCOMING, then others
     const sortedContests = [...filteredContests].sort((a, b) => {
-        const order = { LIVE: 0, UPCOMING: 1, CLOSED: 2 };
-        return order[a.status] - order[b.status];
+        const order: Record<string, number> = { LIVE: 0, UPCOMING: 1, CLOSED: 2 };
+        return (order[a.status] ?? 3) - (order[b.status] ?? 3);
     });
 
     return (
@@ -60,9 +74,9 @@ export default function ContestsPage() {
 
             {/* Filters & Search */}
             <div className="flex flex-col md:flex-row gap-4 mb-8">
-                {/* Status Filter Tabs */}
+                {/* Filter Tabs */}
                 <div className="flex items-center gap-1 p-1 bg-[var(--bg-secondary)] rounded-lg">
-                    {statusFilters.map((filter) => (
+                    {filters.map((filter) => (
                         <button
                             key={filter.value}
                             onClick={() => setActiveFilter(filter.value)}
@@ -120,9 +134,9 @@ export default function ContestsPage() {
                                             Upcoming
                                         </span>
                                     )}
-                                    {contest.status === 'CLOSED' && (
-                                        <span className="text-xs px-2 py-1 rounded bg-[var(--bg-elevated)] text-[var(--text-muted)]">
-                                            Closed
+                                    {(contest as any).mode === 'practice' && (
+                                        <span className="text-xs px-2 py-1 rounded bg-blue-500/10 text-blue-600">
+                                            Practice
                                         </span>
                                     )}
                                     <span className="text-xs px-2 py-1 rounded bg-[var(--bg-elevated)] text-[var(--text-muted)]">

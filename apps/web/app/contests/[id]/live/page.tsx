@@ -443,30 +443,38 @@ export default function LiveContestPage() {
     return (
         <div className="min-h-screen bg-[var(--bg-secondary)] flex flex-col">
             {/* Top Bar */}
-            <header className="bg-[var(--bg-primary)] border-b border-[var(--border)] sticky top-0 z-50 shadow-sm">
-                <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <Link
-                            href={`/contests/${contestId}`}
-                            className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors p-2 -ml-2 rounded-lg hover:bg-[var(--bg-secondary)]"
-                        >
-                            <ArrowLeft className="w-5 h-5" />
-                        </Link>
-                        <div>
-                            <div className="flex items-center gap-2">
-                                <h1 className="font-semibold text-[var(--text-primary)] leading-tight">{contest.title}</h1>
-                                {wsConnected ? (
-                                    <Wifi className="w-4 h-4 text-green-500" />
-                                ) : (
-                                    <WifiOff className="w-4 h-4 text-red-500" />
-                                )}
+            <header className="bg-[var(--bg-primary)] border-b border-[var(--border)] sticky top-0 z-50">
+                <div className="container max-w-7xl mx-auto px-6 py-4">
+                    <div className="flex items-center justify-between">
+                        {/* Left: Back + Title */}
+                        <div className="flex items-center gap-3">
+                            <Link
+                                href={`/contests/${contestId}`}
+                                className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors p-2 -ml-2 rounded-lg hover:bg-[var(--bg-secondary)]"
+                            >
+                                <ArrowLeft className="w-5 h-5" />
+                            </Link>
+                            <div className="flex flex-col gap-0.5">
+                                <div className="flex items-center gap-3">
+                                    <h1 className="text-lg font-semibold text-[var(--text-primary)]">{contest.title}</h1>
+                                    <span className="text-xs bg-green-500/10 text-green-500 px-2.5 py-1 rounded-full font-medium flex items-center gap-1.5">
+                                        <span className="live-dot" /> Live
+                                    </span>
+                                    {wsConnected ? (
+                                        <Wifi className="w-4 h-4 text-green-500" />
+                                    ) : (
+                                        <WifiOff className="w-4 h-4 text-red-500" />
+                                    )}
+                                </div>
+                                <p className="text-sm text-[var(--text-muted)]">
+                                    {answeredCount} of {totalQuestions} answered
+                                </p>
                             </div>
-                            <p className="text-xs text-[var(--text-muted)]">
-                                {answeredCount} of {totalQuestions} answered
-                            </p>
                         </div>
+
+                        {/* Right: Timer */}
+                        <Timer initialSeconds={estimatedDuration} onTimeUp={handleFinishContest} />
                     </div>
-                    <Timer initialSeconds={estimatedDuration} onTimeUp={handleFinishContest} />
                 </div>
             </header>
 
@@ -479,7 +487,7 @@ export default function LiveContestPage() {
             </div>
 
             {/* Main Content */}
-            <main className="flex-1 container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <main className="flex-1 container max-w-7xl mx-auto px-6 py-12">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
                     {/* Question Section */}
                     <div className="lg:col-span-8 flex flex-col gap-6">
@@ -552,7 +560,7 @@ export default function LiveContestPage() {
                                             <div
                                                 key={entry.userId}
                                                 className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-all ${isMe
-                                                    ? 'bg-[var(--accent-primary)]/10 ring-1 ring-[var(--accent-primary)]/30'
+                                                    ? 'bg-[var(--accent-primary)]/10 border border-[var(--accent-primary)]/20'
                                                     : 'bg-[var(--bg-elevated)] hover:bg-[var(--bg-secondary)]'
                                                     }`}
                                             >
