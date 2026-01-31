@@ -42,6 +42,7 @@ export default function CreatePracticeQuizPage() {
 
         setIsLoading(true);
 
+        // Step 1: Create the contest
         const response = await api.createContest({
             title: formData.title,
             discription: formData.discription,
@@ -52,8 +53,22 @@ export default function CreatePracticeQuizPage() {
         });
 
         if (response.success && response.data?.contestId) {
-            toast.success('Practice quiz created!');
-            router.push(`/practice/${response.data.contestId}/generate`);
+            toast.success('Generating questions with AI...');
+
+            // Step 2: Auto-generate questions using description as prompt
+            const aiResponse = await api.createQuestionsWithAI({
+                prompt: formData.discription,
+                contestId: response.data.contestId,
+                mode: 'practice',
+            });
+
+            if (aiResponse.success) {
+                toast.success('Quiz ready!');
+                router.push(`/contests/${response.data.contestId}/practice`);
+            } else {
+                toast.error('Failed to generate questions. Redirecting to manual generation...');
+                router.push(`/practice/${response.data.contestId}/generate`);
+            }
         } else {
             toast.error(response.error || 'Failed to create practice quiz');
             setIsLoading(false);
@@ -115,7 +130,7 @@ export default function CreatePracticeQuizPage() {
                             <textarea
                                 value={formData.discription}
                                 onChange={(e) => setFormData({ ...formData, discription: e.target.value })}
-                                placeholder="What will this quiz cover? Describe the topics and difficulty level..."
+                                placeholder="What will your quiz be about? e.g., JavaScript closures for beginners..."
                                 className="w-full h-32 px-5 py-4 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] resize-none focus:outline-none focus:border-[var(--accent)] transition-all text-base leading-relaxed"
                                 disabled={isLoading}
                             />

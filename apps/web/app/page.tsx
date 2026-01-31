@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, Code, Users, Trophy, Zap } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { api } from '@/lib/api';
+import { useAuth } from '@/lib/auth-context';
 import type { Contest } from '@/lib/types';
 
 export default function HomePage() {
+  const { isAuthenticated } = useAuth();
   const [liveContests, setLiveContests] = useState<Contest[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -39,14 +41,14 @@ export default function HomePage() {
               and prove your skills on the global leaderboard.
             </p>
             <div className="flex items-center gap-4">
-              <Link href="/auth/signup">
+              <Link href="/contests">
                 <button className="px-6 py-3 text-sm font-medium bg-[var(--accent)] text-[var(--bg-primary)] rounded-lg hover:opacity-90 transition-opacity">
-                  Get Started
+                  Browse Contests
                 </button>
               </Link>
-              <Link href="/contests">
+              <Link href={isAuthenticated ? "/practice/new" : "/auth/signin"}>
                 <button className="px-6 py-3 text-sm font-medium text-[var(--text-primary)] border border-[var(--border)] rounded-lg hover:border-[var(--border-hover)] transition-colors">
-                  Browse Contests
+                  Practice with AI
                 </button>
               </Link>
             </div>
@@ -77,10 +79,6 @@ export default function HomePage() {
         <div className="container">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <div className="flex items-center gap-2 mb-2">
-                <span className="live-dot" />
-                <span className="text-xs text-[var(--text-muted)] uppercase tracking-wider">Live</span>
-              </div>
               <h2>Active Contests</h2>
             </div>
             <Link href="/contests" className="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors flex items-center gap-1">
@@ -127,22 +125,19 @@ export default function HomePage() {
         <div className="container">
           <div className="mb-12">
             <h2 className="mb-2">Why SkillUp?</h2>
-            <p className="text-[var(--text-secondary)]">Everything you need to improve.</p>
+            <p className="text-[var(--text-secondary)]">Get 1% better every day.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {[
-              { icon: <Zap className="w-5 h-5" />, title: 'Real-time', desc: 'Live competitions with instant results' },
-              { icon: <Trophy className="w-5 h-5" />, title: 'Rankings', desc: 'Global leaderboard and rankings' },
-              { icon: <Code className="w-5 h-5" />, title: 'DSA & Dev', desc: 'Algorithms and development challenges' },
-              { icon: <Users className="w-5 h-5" />, title: 'Community', desc: 'Connect with other developers' },
+              { title: 'Real-time Competition', desc: 'Compete head-to-head with developers worldwide. Live rankings update as you solve.' },
+              { title: 'Track Your Growth', desc: 'Watch your skills compound over time. Every problem solved is progress earned.' },
+              { title: 'DSA & Development', desc: 'From algorithms to full-stack challenges. Build the skills that matter most.' },
+              { title: 'Learn by Doing', desc: 'Theory only takes you so far. Practice under pressure makes perfect.' },
             ].map((feature, i) => (
               <div key={i}>
-                <div className="w-10 h-10 rounded-lg bg-[var(--bg-elevated)] flex items-center justify-center mb-4 text-[var(--text-secondary)]">
-                  {feature.icon}
-                </div>
-                <h3 className="font-medium mb-1">{feature.title}</h3>
-                <p className="text-sm text-[var(--text-muted)]">{feature.desc}</p>
+                <h3 className="font-medium mb-2">{feature.title}</h3>
+                <p className="text-sm text-[var(--text-muted)] leading-relaxed">{feature.desc}</p>
               </div>
             ))}
           </div>
