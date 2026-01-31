@@ -1,8 +1,11 @@
 import type { Request , Response } from "express";
-import { ContestSchema, createUsingAISchema, GetAllContestSchema, GetContestSchema, MCQSchema } from "../validators/contest.schema";
+import { ContestSchema, createUsingAISchema, GetAllContestSchema, GetContestSchema, JoinPracticeContestSchema, MCQSchema, SubmitPracticeAnswerSchema } from "../validators/contest.schema";
 import { prisma } from "@repo/database";
 import { generateText, type ModelMessage } from "ai";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
+import { fetchSolution, MCQSolutionMap } from "../cache/solutionCache";
+import { GetRandomQuestion } from "../services/getRandomQuestion";
+import { use } from "react";
 
 export async function CreateContest(req : Request  , res : Response){ 
     // const safeData = UserController(req , res);
@@ -295,4 +298,205 @@ export async function CreateContestWithAI(req: Request , res : Response){
     return res.status(200).json({
         data : result
     })
+}
+
+export async function JoinpracticeContest(req: Request , res: Response) {
+
+    console.log("inside join contest")
+    const userId = req.userId
+    const role = req.role
+
+
+    const { data , success }  = JoinPracticeContestSchema.safeParse(req.body)
+    if(!data || !success || !userId){ 
+        return res.status(400).json({ 
+            success : false , 
+            error : "INVALID REQUEST", 
+            data : null
+        })
+    }
+    const contest = await prisma.contests.findUnique({
+        where : { 
+            id : data.contestId
+        } , 
+        select  : { 
+            mode : true
+        }
+    })
+    if(contest?.mode == "real"){ 
+        return res.status(403).json({
+            success : false , 
+            error : "FORBIDDEN" , 
+            message : "contest is still live ! cant practice "
+        })
+    }
+    const contestId = data.contestId
+    //first find that the solution is in memory or not , if not fetch it 
+    let Solution =  MCQSolutionMap.get(contestId)
+    if(Solution?.length == 0 || !Solution){ 
+        await fetchSolution(contestId)
+        Solution = MCQSolutionMap.get(contestId)
+        if(Solution?.length == 0 || !Solution) {
+            return res.status(400).json({
+                success : false , 
+                error : "EMPTY CONTEST" ,
+                data : null
+            })
+         }
+    }
+    const randomQuestion = await GetRandomQuestion(contestId ,userId  , Solution)
+    console.log("randomQuestion which is not submitted by user " +  JSON.stringify(randomQuestion) )
+
+    
+    
+    
+    const existingUser  =  await prisma.submissions.findFirst({ 
+        where : { 
+            contestId, 
+            userId
+        }
+    })
+
+    if(existingUser!= null){ 
+        return res.status(200).json({
+            success : true , 
+            message : "User Rejoined the contest" ,
+            data : { 
+                randomQuestion : randomQuestion
+            }
+        })
+    }
+
+    
+    // console.log("leaderboard" + JSON.stringify(leaderbaord))
+    console.log("sucessfully joined the contest")
+    
+    return res.status(200).json({
+        success : true , 
+        message : "sucessfully joined the contest" ,
+        data : { 
+            randomQuestion : randomQuestion
+        }
+    })
+
+
+}
+export async function SubmitAnswerOfPracticeContest(req:Request , res : Response) {
+
+    console.log("inside submit answer")
+    const userId = req.userId
+    const { data , success } = SubmitPracticeAnswerSchema.safeParse(req.body)
+
+     if(!data || !success || !userId){ 
+        return res.status(400).json({ 
+            success : false , 
+            error : "INVALID REQUEST", 
+            data : null
+        })
+    }
+    try{
+        const allMCQofThisContest = MCQSolutionMap.get(data.contestId)
+        if(!allMCQofThisContest){ 
+            return res.status(404).json({
+                success : false , 
+                data : null , 
+                error : "CONTEST_NOT_FOUND"
+            })
+        }
+        // console.log("randomQuestion which is not submitted by user " +  JSON.stringify(randomQuestion) )
+        const thisMCQSolution = allMCQofThisContest?.find((x : any)=> x.id === data.questionId)
+        if(thisMCQSolution == null){ 
+            console.log("failed to find the mcq at db")
+            return res.status(404).json({
+                success : false , 
+                error : "failed to find the mcq at db",
+                data : null
+            })
+        }
+        const correctAnswer = thisMCQSolution?.Solution
+        if(correctAnswer == data.answer ){ 
+            console.log("correct answerr")   
+            const submit = await prisma.submissions.upsert({
+                where : { 
+                    userId_contestId_questionId : { 
+                        userId , 
+                        contestId : data.contestId , 
+                        questionId : data.questionId
+                    }
+                },
+                update : { 
+                    selectedOption : data.answer , 
+                    isCorrect : true , 
+                    mode  : "practice"
+                } , 
+                create : { 
+                    contestId : data.contestId , 
+                    questionId : data.questionId , 
+                    selectedOption : data.answer , 
+                    isCorrect : false , 
+                    mode : "practice" , 
+                    userId : userId
+                }
+            })
+
+            const randomQuestion = await GetRandomQuestion(data.contestId , userId ,allMCQofThisContest )
+            return res.status(200).send({
+                success : true , 
+                error : "correct",
+                data :  { 
+                    randomQuestion : randomQuestion
+                }
+            })
+
+        }
+        else{
+            console.log("Wrong answer")
+            console.log("right answer " + correctAnswer )
+            const submit = await prisma.submissions.upsert({
+                where : { 
+                    userId_contestId_questionId : { 
+                        userId , 
+                        contestId : data.contestId , 
+                        questionId : data.questionId
+                    }
+                },
+                update : { 
+                    selectedOption : data.answer , 
+                    isCorrect : false , 
+                    mode  : "practice"
+                } , 
+                create : { 
+                    contestId : data.contestId , 
+                    questionId : data.questionId , 
+                    selectedOption : data.answer , 
+                    isCorrect : false , 
+                    mode : "practice" , 
+                    userId : userId
+                }
+            })
+            const randomQuestion = await GetRandomQuestion(data.contestId , userId ,[...allMCQofThisContest] )
+            return res.status(200).json({
+                success : true , 
+                error : "incorrect",
+                data :  { 
+                    randomQuestion : randomQuestion
+                }
+            })
+            
+        }
+        
+    } 
+    // we need a function here , which will serch -> which fires a random question , and also checking that if that question isnt already exisit in the array 
+
+    catch(e){ 
+        alert("error submiting user answer " + e)
+        return res.status(200).json({
+            success : false , 
+            error : "error in submitting answer " + e,
+            data : null
+        })
+    }
+
+
+
 }
