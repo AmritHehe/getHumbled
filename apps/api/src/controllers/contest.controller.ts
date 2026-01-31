@@ -1,5 +1,5 @@
 import type { Request , Response } from "express";
-import { ContestSchema, createUsingAISchema, GetAllContestSchema, GetContestSchema, JoinPracticeContestSchema, MCQSchema, SubmitPracticeAnswerSchema } from "../validators/contest.schema";
+import { ContestSchema, createUsingAISchema, GetAllContestSchema, GetContestSchema, JoinPracticeContestSchema, MCQSchema, ReAttemptPracticeSchema, SubmitPracticeAnswerSchema } from "../validators/contest.schema";
 import { prisma } from "@repo/database";
 import { generateText, type ModelMessage } from "ai";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
@@ -153,9 +153,8 @@ export async function GetContest(req : Request  , res : Response){
             })
         }
 
-       const contestState = getContestState({
+       const contestState = await getContestState({
             StartDate: contest.StartDate,
-            StartTime: contest.StartTime,
             ContestTotalTime: contest.ContestTotalTime,
             mode: contest.mode,
          })
@@ -183,15 +182,22 @@ export async function GetAllContest(req : Request  , res : Response){
     }
     try { 
         let allContest ;
-        if(data.status == "ALL"){
-            allContest = await prisma.contests.findMany({})
+        if(data.mode) { 
+            allContest = await prisma.contests.findMany({
+                where : {
+                    mode : data.mode
+                }
+            })
         }
-        else { 
+        else if(data.status) { 
             allContest = await prisma.contests.findMany({
                 where : {
                     status : data.status
                 }
             })
+        }
+        else{ 
+            allContest = await prisma.contests.findMany({})
         }
          
         return res.status(200).json({
@@ -514,4 +520,52 @@ export async function SubmitAnswerOfPracticeContest(req:Request , res : Response
 
 
 
+}
+export async function ReAttemptPracticeContest(req:Request , res : Response) {
+    
+    const userId = req.userId;
+
+    const {data , success} = ReAttemptPracticeSchema.safeParse(req.body)
+
+    if(!data || !success) { 
+        return res.status(400).json({
+            success : false,
+            error : "BAD REQUEST",
+            message : "bad schema"
+        })
+    }
+    try { 
+
+        const contestDetails = await prisma.contests.findUnique({
+            where : { 
+                id : data.contestId
+            }
+        })
+        if (contestDetails?.mode != "practice" || !contestDetails){ 
+            return res.status(403).json({
+                success : false , 
+                error : "FORBIDDEN" , 
+                message : "not a practice quiz ! cant retttempt" 
+
+            })
+        }
+        const wipeContest = await prisma.submissions.deleteMany({
+            where : { 
+                contestId : data?.contestId,
+                userId : userId
+            }
+        })
+        return res.status(200).json({
+            success : true , 
+            data : wipeContest , 
+            error : null 
+        })
+    }
+    catch(e){ 
+        return res.status(500).json({
+            success : false ,
+            message : "failed with the error" + JSON.stringify(e) , 
+            error : "SERVER_ERROR"
+        })
+    }   
 }

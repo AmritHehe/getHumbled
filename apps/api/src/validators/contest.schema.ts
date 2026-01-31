@@ -24,7 +24,8 @@ export const GetContestSchema = z.object({
     contestId : z.string(),
 })
 export const GetAllContestSchema = z.object({
-    status : z.enum([  "UPCOMING" ,"LIVE" ,"CLOSED" , "ALL"]),
+    status : z.enum([  "UPCOMING" ,"LIVE" ,"CLOSED"]).optional(),
+    mode : z.enum(["practice" , "real"]).optional()
 })
 
 export const CodeSchema = z.object({
@@ -47,4 +48,7 @@ export const SubmitPracticeAnswerSchema = z.object({
     contestId : z.string(), 
     questionId : z.string() , 
     answer : z.enum(["A" , "B"  , "C" , "D"])
+})
+export const ReAttemptPracticeSchema = z.object({
+    contestId : z.string()
 })

@@ -1,5 +1,5 @@
 import Router from "express"
-import { CreateContest, CreateMcqQuestion, GetAllContest, GetContest , CreateContestWithAI } from "../controllers/contest.controller"
+import { CreateContest, CreateMcqQuestion, GetAllContest, GetContest , CreateContestWithAI, JoinpracticeContest, SubmitAnswerOfPracticeContest, ReAttemptPracticeContest } from "../controllers/contest.controller"
 import { TokenVerification } from "../middlewares/user.middleware"
 
 const ContestRouter = Router()
@@ -13,4 +13,9 @@ ContestRouter.post("/question/new", TokenVerification, CreateMcqQuestion)
 ContestRouter.post("/contests", TokenVerification, GetAllContest)
 ContestRouter.post("/getContest", TokenVerification, GetContest)
 ContestRouter.post("/CreateContestAI" , TokenVerification , CreateContestWithAI)
+
+ContestRouter.post("/contests/practice/join" ,TokenVerification , JoinpracticeContest )
+ContestRouter.post("/contests/practice/submit" , TokenVerification , SubmitAnswerOfPracticeContest)
+
+ContestRouter.post("/contests/reattempt" , TokenVerification , ReAttemptPracticeContest)
 export default ContestRouter;
