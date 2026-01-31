@@ -1,5 +1,4 @@
 export async function getContestState( contest : { 
-        StartTime:Date  | null ,
         StartDate : Date | null, 
         ContestTotalTime : number ,
         mode : "real" | "practice"
@@ -14,18 +13,12 @@ export async function getContestState( contest : {
     }
     const currentDateTime = new Date() 
 
-    if (!contest.StartDate || !contest.StartTime) {
+    if (!contest.StartDate) {
+        console.log("returning upcoming because of here")
         return "UPCOMING"
     }
 
-
-    if(currentDateTime< contest.StartTime){ 
-        return "UPCOMING"
-    }
-    const start = new Date(
-        `${contest.StartDate.toISOString().split("T")[0]}T${contest.StartTime}`
-    )
-    
+  const start = contest.StartDate
   const end = new Date(start.getTime() + contest.ContestTotalTime * 60_000)
    
   if (currentDateTime < start) return "UPCOMING"
