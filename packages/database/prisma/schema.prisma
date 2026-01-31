@@ -58,6 +58,7 @@ model Contests{
   createdBy  String
   StartDate DateTime?
   StartTime DateTime?
+  ContestTotalTime Int @default(60)
   leaderboard LeaderBoard?
   mode Mode @default(real)
   MCQ MCQ[]
