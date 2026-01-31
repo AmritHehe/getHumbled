@@ -25,7 +25,7 @@ export default function AdminContestsPage() {
     useEffect(() => {
         async function fetchContests() {
             setIsLoading(true);
-            const response = await api.getContests(activeFilter === 'ALL' ? 'ALL' : activeFilter);
+            const response = await api.getContests(activeFilter === 'ALL' ? undefined : { status: activeFilter });
             if (response.success && response.data) {
                 setContests(response.data);
             } else {

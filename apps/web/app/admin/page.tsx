@@ -16,7 +16,7 @@ export default function AdminDashboardPage() {
     useEffect(() => {
         async function fetchData() {
             setIsLoading(true);
-            const response = await api.getContests('ALL');
+            const response = await api.getContests();
             if (response.success && response.data) {
                 setContests(response.data);
             }

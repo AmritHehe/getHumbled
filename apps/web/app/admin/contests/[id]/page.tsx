@@ -125,7 +125,7 @@ export default function AdminContestDetailPage() {
                                         {question.srNo || '?'}
                                     </div>
                                     <div className="min-w-0">
-                                        <p className="font-medium text-[var(--text-primary)] truncate">{question.question.split('\n')[0]}</p>
+                                        <p className="font-medium text-[var(--text-primary)] truncate">{question.question?.split('\n')[0] || 'No question text'}</p>
                                         <div className="flex items-center gap-2 mt-1">
                                             <Badge variant="default" className="text-xs shrink-0">
                                                 <FileQuestion className="w-3 h-3 mr-1" />

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Clock, Calendar } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -19,15 +19,30 @@ export default function CreateContestPage() {
         discription: '',
         type: 'DSA' as ContestType,
         status: 'UPCOMING' as ContestStatus,
+        startDate: '',
+        startTime: '',
+        duration: 60, // minutes
     });
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
 
+        // Build StartTime from date and time
+        let startDateTime: Date;
+        if (formData.status === 'UPCOMING' && formData.startDate && formData.startTime) {
+            startDateTime = new Date(`${formData.startDate}T${formData.startTime}`);
+        } else {
+            startDateTime = new Date();
+        }
+
         const response = await api.createContest({
-            ...formData,
-            StartTime: new Date(),
+            title: formData.title,
+            discription: formData.discription,
+            type: formData.type,
+            status: formData.status,
+            StartTime: startDateTime,
+            ContestTotalTime: formData.duration,
         });
 
         if (response.success) {
@@ -126,6 +141,110 @@ export default function CreateContestPage() {
                             ))}
                         </div>
                     </div>
+                </div>
+
+                {/* Scheduling Section */}
+                <div className="card p-6 space-y-4">
+                    <h3 className="text-sm font-medium text-[var(--text-primary)] flex items-center gap-2">
+                        {formData.status === 'UPCOMING' ? (
+                            <>
+                                <Calendar className="w-4 h-4" />
+                                Schedule
+                            </>
+                        ) : (
+                            <>
+                                <Clock className="w-4 h-4" />
+                                Duration
+                            </>
+                        )}
+                    </h3>
+
+                    {formData.status === 'UPCOMING' ? (
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="label">Start Date</label>
+                                <input
+                                    type="date"
+                                    className="input-field"
+                                    value={formData.startDate}
+                                    onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                                    min={new Date().toISOString().split('T')[0]}
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="label">Start Time</label>
+                                <input
+                                    type="time"
+                                    className="input-field"
+                                    value={formData.startTime}
+                                    onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
+                                    required
+                                />
+                            </div>
+                        </div>
+                    ) : (
+                        <div>
+                            <label className="label">Quiz Duration (minutes)</label>
+                            <p className="text-xs text-[var(--text-muted)] mb-2">
+                                How long participants have to complete the contest
+                            </p>
+                            <div className="flex gap-3">
+                                {[15, 30, 45, 60, 90, 120].map((mins) => (
+                                    <button
+                                        key={mins}
+                                        type="button"
+                                        onClick={() => setFormData({ ...formData, duration: mins })}
+                                        className={cn(
+                                            'px-4 py-2 rounded-lg border text-sm font-medium transition-all',
+                                            formData.duration === mins
+                                                ? 'border-[var(--accent)] bg-[var(--accent)]/5 text-[var(--accent)]'
+                                                : 'border-[var(--border)] hover:border-[var(--border-hover)]'
+                                        )}
+                                    >
+                                        {mins}m
+                                    </button>
+                                ))}
+                            </div>
+                            <div className="mt-3">
+                                <Input
+                                    type="number"
+                                    placeholder="Or enter custom duration"
+                                    value={formData.duration}
+                                    onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) || 60 })}
+                                    min={5}
+                                    max={300}
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Always show duration for UPCOMING too */}
+                    {formData.status === 'UPCOMING' && (
+                        <div>
+                            <label className="label">Quiz Duration (minutes)</label>
+                            <p className="text-xs text-[var(--text-muted)] mb-2">
+                                How long participants have to complete the contest once it goes live
+                            </p>
+                            <div className="flex gap-3 flex-wrap">
+                                {[15, 30, 45, 60, 90, 120].map((mins) => (
+                                    <button
+                                        key={mins}
+                                        type="button"
+                                        onClick={() => setFormData({ ...formData, duration: mins })}
+                                        className={cn(
+                                            'px-4 py-2 rounded-lg border text-sm font-medium transition-all',
+                                            formData.duration === mins
+                                                ? 'border-[var(--accent)] bg-[var(--accent)]/5 text-[var(--accent)]'
+                                                : 'border-[var(--border)] hover:border-[var(--border-hover)]'
+                                        )}
+                                    >
+                                        {mins}m
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Actions */}
