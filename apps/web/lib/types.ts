@@ -3,6 +3,8 @@
 export type Role = 'USER' | 'ADMIN';
 export type ContestType = 'DEV' | 'DSA';
 export type ContestStatus = 'UPCOMING' | 'LIVE' | 'CLOSED';
+export type ContestMode = 'real' | 'practice';
+export type ContestState = 'LIVE' | 'UPCOMING' | 'PRACTICE';
 export type MCQOption = 'A' | 'B' | 'C' | 'D';
 
 export interface User {
@@ -23,6 +25,8 @@ export interface Contest {
   createdBy: string;
   StartDate?: string;
   StartTime?: string;
+  ContestTotalTime?: number;
+  mode?: ContestMode;
   MCQ?: MCQ[];
   codeQ?: CodeQuestion[];
   leaderboard?: Leaderboard;
@@ -102,6 +106,7 @@ export interface CreateContestData {
   type: ContestType;
   status: ContestStatus;
   StartTime: Date;
+  ContestTotalTime?: number;
   mode?: 'real' | 'practice';
 }
 

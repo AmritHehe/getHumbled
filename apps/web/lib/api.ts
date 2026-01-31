@@ -106,11 +106,14 @@ class ApiClient {
     }
 
     // Contest endpoints - uses public route if no token
-    async getContests(status: 'UPCOMING' | 'LIVE' | 'CLOSED' | 'ALL' = 'ALL'): Promise<ApiResponse<Contest[]>> {
+    async getContests(filters?: {
+        status?: 'UPCOMING' | 'LIVE' | 'CLOSED';
+        mode?: 'real' | 'practice';
+    }): Promise<ApiResponse<Contest[]>> {
         const endpoint = this.token ? '/contests' : '/contests/public';
         return this.request(endpoint, {
             method: 'POST',
-            body: JSON.stringify({ status }),
+            body: JSON.stringify(filters || {}),
         });
     }
 
@@ -141,6 +144,28 @@ class ApiClient {
         return this.request('/CreateContestAI', {
             method: 'POST',
             body: JSON.stringify(data),
+        });
+    }
+
+    // Practice Contest endpoints
+    async joinPracticeContest(contestId: string): Promise<ApiResponse<{ randomQuestion: any }>> {
+        return this.request('/contests/practice/join', {
+            method: 'POST',
+            body: JSON.stringify({ contestId }),
+        });
+    }
+
+    async submitPracticeAnswer(contestId: string, questionId: string, answer: string): Promise<ApiResponse<{ randomQuestion: any }>> {
+        return this.request('/contests/practice/submit', {
+            method: 'POST',
+            body: JSON.stringify({ contestId, questionId, answer }),
+        });
+    }
+
+    async reAttemptPracticeContest(contestId: string): Promise<ApiResponse<any>> {
+        return this.request('/contests/reattempt', {
+            method: 'POST',
+            body: JSON.stringify({ contestId }),
         });
     }
 }

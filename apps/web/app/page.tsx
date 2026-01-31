@@ -12,7 +12,7 @@ export default function HomePage() {
 
   useEffect(() => {
     async function fetchContests() {
-      const response = await api.getContests('LIVE');
+      const response = await api.getContests({ status: 'LIVE' });
       if (response.success && response.data) {
         setLiveContests(response.data.slice(0, 3));
       }

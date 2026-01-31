@@ -22,13 +22,13 @@ export default function DashboardPage() {
             setIsLoading(true);
 
             // Fetch upcoming contests
-            const upcomingRes = await api.getContests('UPCOMING');
+            const upcomingRes = await api.getContests({ status: 'UPCOMING' });
             if (upcomingRes.success && upcomingRes.data) {
                 setUpcomingContests(upcomingRes.data.slice(0, 3));
             }
 
             // Fetch closed contests for recent activity
-            const closedRes = await api.getContests('CLOSED');
+            const closedRes = await api.getContests({ status: 'CLOSED' });
             if (closedRes.success && closedRes.data) {
                 setRecentContests(closedRes.data.slice(0, 5));
             }
