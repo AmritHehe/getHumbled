@@ -38,3 +38,12 @@ export const createUsingAISchema = z.object({
     prompt : z.string() ,
     contestId : z.string()
 })
+
+export const JoinPracticeContestSchema = z.object({
+    contestId : z.string()
+})
+export const SubmitPracticeAnswerSchema = z.object({
+    contestId : z.string(), 
+    questionId : z.string() , 
+    answer : z.enum(["A" , "B"  , "C" , "D"])
+})
