@@ -6,7 +6,13 @@ import cors from  "cors"
 
 const app = express();
 
-app.use(cors())
+app.use(cors({
+  origin: ["http://localhost:3000" , "https://get-humbled-web.vercel.app" , "https://skillup.amrithehe.com"], // allowed frontend origins
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  exposedHeaders: ["Content-Type", "Cache-Control", "Expires"]
+}))
 app.use(express.json());
 
 app.use(UserRouter);
