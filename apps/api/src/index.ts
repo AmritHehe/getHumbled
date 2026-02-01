@@ -19,6 +19,6 @@ app.use(UserRouter);
 app.use(ContestRouter);
 app.use(AdminRouter)
 
-app.listen(3000 , () => {
-    console.log("server runming on port 3000")
+app.listen(3004 , () => {
+    console.log("server runming on port 3004")
 })
