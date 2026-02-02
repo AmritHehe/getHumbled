@@ -1,199 +1,260 @@
-# Turborepo + Prisma ORM starter
+# SkillUp - Competitive Quiz Platform
 
-This is a example designed to help you quickly set up a Turborepo monorepo with a Next.js app and Prisma ORM. This is a community-maintained example. If you experience a problem, please submit a pull request with a fix. GitHub Issues will be closed.
+A real-time competitive quiz platform where users can participate in live MCQ contests, practice with AI-generated quizzes, and track their progress on leaderboards.
 
-## What's inside?
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)
+![Next.js](https://img.shields.io/badge/Next.js-15-black)
+![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748)
 
-This turborepo includes the following packages/apps:
+## Features
 
-### Apps and packages
+### Live Contests
+- **Real-time competitions** with WebSocket-powered live updates
+- **Live leaderboard** that updates as participants answer questions
+- **Timed questions** with points based on speed and accuracy
+- **Admin-controlled** contest scheduling and management
 
-- `web`: a [Next.js](https://nextjs.org/) app
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/database`: [Prisma ORM](https://prisma.io/) to manage & access your database
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+### AI Practice Mode
+- **AI-generated quizzes** - Describe a topic and get instant MCQ questions
+- **Unlimited practice** - Create personalized quizzes on any subject
+- **Re-attempt support** - Practice until you master the topic
+- **Progress tracking** - See your score and correct answers
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+### Leaderboard & Stats
+- **Global leaderboard** ranking all participants
+- **Per-contest rankings** with real-time updates
+- **User dashboards** with contest history
 
-### Utilities
+### Authentication & Roles
+- **JWT-based authentication** with secure password hashing
+- **Role-based access** - User and Admin roles
+- **Protected routes** for admin functionality
 
-This turborepo has some additional tools already setup for you:
+## Architecture
 
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-- [Prisma ORM](https://prisma.io/) for accessing the database
-- [Docker Compose](https://docs.docker.com/compose/) for a local MySQL database
-
-## Getting started
-
-Follow these steps to set up and run your Turborepo project with Prisma ORM:
-
-### 1. Create a Turborepo project
-
-Start by creating a new Turborepo project using the following command:
-
-```sh
-npx create-turbo@latest -e with-prisma
+```
+skillup/
+├── apps/
+│   ├── web/              # Next.js 15 frontend
+│   ├── api/              # Express.js REST API
+│   └── liveContest/      # WebSocket server for real-time features
+├── packages/
+│   ├── database/         # Prisma ORM & schema
+│   ├── ui/               # Shared UI components
+│   ├── eslint-config/    # ESLint configurations
+│   ├── tailwind-config/  # Tailwind configurations
+│   └── typescript-config/# TypeScript configurations
 ```
 
-Choose your desired package manager when prompted and a name for the app (e.g., `my-turborepo`). This will scaffold a new Turborepo project with Prisma ORM included and dependencies installed.
+## Tech Stack
 
-Navigate to your project directory:
+| Layer | Technology |
+|-------|------------|
+| **Frontend** | Next.js 15, React 19, TypeScript, Tailwind CSS |
+| **Backend API** | Express.js, TypeScript, Zod validation |
+| **Real-time** | WebSocket (ws), Redis for state management |
+| **Database** | PostgreSQL with Prisma ORM |
+| **AI** | Google Gemini API for question generation |
+| **Auth** | JWT tokens, bcrypt password hashing |
+| **Monorepo** | Turborepo with Bun package manager |
+
+## Database Schema
+
+```prisma
+User          → Contests, Submissions
+Contests      → MCQs, Leaderboard, Submissions
+MCQ           → Submissions
+LeaderBoard   → Scores
+```
+
+### Key Models
+- **User**: Authentication, roles (USER/ADMIN)
+- **Contests**: Title, description, type (DEV/DSA), status (UPCOMING/LIVE/CLOSED), mode (real/practice)
+- **MCQ**: Questions with 4 options (A/B/C/D), points, solution
+- **Submissions**: User answers with correctness tracking
+- **LeaderBoard**: Real-time contest rankings
+
+##  Getting Started
+
+### Prerequisites
+- Node.js 18+ or Bun
+- PostgreSQL database
+- Redis (for live contests)
+- Docker (optional, for local database)
+
+### 1. Clone & Install
 
 ```bash
-cd ./my-turborepo
+git clone https://github.com/AmritHehe/getHumbled.git
+cd getHumbled
+bun install
 ```
 
-### 2. Setup a local database with Docker Compose
+### 2. Environment Setup
 
-We use [Prisma ORM](https://prisma.io/) to manage and access our database. As such you will need a database for this project, either locally or hosted in the cloud.
+Copy `.env.example` to `.env` in root and configure:
 
-To make this process easier, a [`docker-compose.yml` file](./docker-compose.yml) is included to setup a MySQL server locally with a new database named `turborepo`:
+```env
+DATABASE_URL="postgresql://user:password@localhost:5432/skillup"
+JWT_SECRET="your-secret-key"
+GEMINI_API_KEY="your-gemini-api-key"
+REDIS_URL="redis://localhost:6379"
+```
 
-Start the MySQL database using Docker Compose:
+Also copy to `packages/database/.env` and `apps/web/.env`.
 
-```sh
+### 3. Database Setup
+
+```bash
+# Start local PostgreSQL with Docker (optional)
 docker-compose up -d
-```
 
-To change the default database name, update the `MYSQL_DATABASE` environment variable in the [`docker-compose.yml` file](/docker-compose.yml).
-
-### 3. Setup environment variables
-
-Once the database is ready, copy the `.env.example` file to the [`/packages/database`](./packages/database/) and [`/apps/web`](./apps/web/) directories as `.env`:
-
-```bash
-cp .env.example ./packages/database/.env
-cp .env.example ./apps/web/.env
-```
-
-This ensures Prisma has access to the `DATABASE_URL` environment variable, which is required to connect to your database.
-
-If you added a custom database name, or use a cloud based database, you will need to update the `DATABASE_URL` in your `.env` accordingly.
-
-### 4. Migrate your database
-
-Once your database is running, you’ll need to create and apply migrations to set up the necessary tables. Run the database migration command:
-
-```bash
-# Using npm
-npm run db:migrate:dev
-```
-
-<details>
-
-<summary>Expand for <code>yarn</code>, <code>pnpm</code> or <code>bun</code></summary>
-
-```bash
-# Using yarn
-yarn run db:migrate:dev
-
-# Using pnpm
-pnpm run db:migrate:dev
-
-# Using bun
+# Run migrations
 bun run db:migrate:dev
-```
 
-</details>
-
-You’ll be prompted to name the migration. Once you provide a name, Prisma will create and apply the migration to your database.
-
-> Note: The `db:migrate:dev` script (located in [packages/database/package.json](/packages/database/package.json)) uses [Prisma Migrate](https://www.prisma.io/migrate) under the hood.
-
-For production environments, always push schema changes to your database using the [`prisma migrate deploy` command](https://www.prisma.io/docs/orm/prisma-client/deployment/deploy-database-changes-with-prisma-migrate). You can find an example `db:migrate:deploy` script in the [`package.json` file](/packages/database/package.json) of the `database` package.
-
-### 5. Seed your database
-
-To populate your database with initial or fake data, use [Prisma's seeding functionality](https://www.prisma.io/docs/guides/database/seed-database).
-
-Update the seed script located at [`packages/database/src/seed.ts`](/packages/database/src/seed.ts) to include any additional data that you want to seed. Once edited, run the seed command:
-
-```bash
-# Using npm
-npm run db:seed
-```
-
-<details>
-
-<summary>Expand for <code>yarn</code>, <code>pnpm</code> or <code>bun</code></summary>
-
-```bash
-# Using yarn
-yarn run db:seed
-
-# Using pnpm
-pnpm run db:seed
-
-# Using bun
+# Seed database (optional)
 bun run db:seed
 ```
 
-</details>
-
-### 6. Build your application
-
-To build all apps and packages in the monorepo, run:
+### 4. Start Development
 
 ```bash
-# Using npm
-npm run build
-```
-
-<details>
-
-<summary>Expand for <code>yarn</code>, <code>pnpm</code> or <code>bun</code></summary>
-
-```bash
-# Using yarn
-yarn run build
-
-# Using pnpm
-pnpm run build
-
-# Using bun
-bun run build
-```
-
-</details>
-
-### 7. Start the application
-
-Finally, start your application with:
-
-```bash
-yarn run dev
-```
-
-<details>
-
-<summary>Expand for <code>yarn</code>, <code>pnpm</code> or <code>bun</code></summary>
-
-```bash
-# Using yarn
-yarn run dev
-
-# Using pnpm
-pnpm run dev
-
-# Using bun
+# Start all services
 bun run dev
 ```
 
-</details>
+This starts:
+- **Web**: http://localhost:3000
+- **API**: http://localhost:3004
+- **WebSocket**: ws://localhost:8080
 
-Your app will be running at `http://localhost:3000`. Open it in your browser to see it in action!
+## 📁 Project Structure
 
-You can also read the official [detailed step-by-step guide from Prisma ORM](https://pris.ly/guide/turborepo?utm_campaign=turborepo-example) to build a project from scratch using Turborepo and Prisma ORM.
+### Frontend (`apps/web`)
+```
+app/
+├── page.tsx              # Landing page
+├── auth/                 # Sign in/up pages
+├── contests/             # Contest browser & live contest UI
+│   └── [id]/
+│       ├── live/         # Real-time contest participation
+│       └── practice/     # Practice mode
+├── practice/             # AI quiz creation
+│   ├── new/              # Create new practice quiz
+│   └── [id]/generate/    # AI question generation
+├── dashboard/            # User dashboard
+├── leaderboard/          # Global rankings
+└── admin/                # Admin panel
+    ├── contests/         # Contest management
+    ├── questions/        # Question bank
+    └── users/            # User management
+```
 
-## Useful Links
+### Backend API (`apps/api`)
+```
+src/
+├── controllers/
+│   ├── contest.controller.ts  # Contest CRUD, AI generation
+│   └── user.controller.ts     # Auth, user management
+├── routes/                    # Express route definitions
+├── services/
+│   ├── generateAIres.ts       # Gemini AI integration
+│   ├── getRandomQuestion.ts   # Question selection logic
+│   └── getContestState.ts     # Contest state management
+├── validators/                # Zod schemas
+└── middlewares/               # Auth middleware
+```
 
-Learn more about the power of Turborepo:
+### WebSocket Server (`apps/liveContest`)
+```
+src/
+├── index.ts            # WebSocket server, message handlers
+├── middleware.ts       # JWT verification
+├── redisClient.ts      # Redis connection
+├── fetchContest.ts     # Contest data fetching
+└── submissionCron.ts   # Periodic DB sync
+```
 
-- [Tasks](https://turborepo.com/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.com/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.com/docs/reference/configuration)
-- [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
+## 🔌 API Endpoints
+
+### Authentication
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/auth/signup` | Register new user |
+| POST | `/api/auth/signin` | Login user |
+| GET | `/api/auth/me` | Get current user |
+
+### Contests
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/contests` | List all contests |
+| GET | `/api/contests/:id` | Get contest details |
+| POST | `/api/contests` | Create contest (Admin) |
+| POST | `/api/contests/generate` | AI question generation |
+| POST | `/api/contests/:id/join` | Join practice contest |
+| POST | `/api/contests/:id/submit` | Submit answer |
+| POST | `/api/contests/:id/reattempt` | Re-attempt practice |
+
+## 🔄 WebSocket Events
+
+### Client → Server
+| Event | Payload | Description |
+|-------|---------|-------------|
+| `init_contest` | `{ contestId }` | Initialize contest (Admin) |
+| `join_contest` | `{ contestId }` | Join live contest |
+| `submit_answer` | `{ questionId, answer }` | Submit MCQ answer |
+| `request_question` | `{ questionNumber }` | Request specific question |
+
+### Server → Client
+| Event | Payload | Description |
+|-------|---------|-------------|
+| `contest_started` | `{ contestId, totalQuestions }` | Contest initialization |
+| `question` | `{ question, options, questionNumber }` | Current question |
+| `answer_result` | `{ correct, points, solution }` | Answer feedback |
+| `leaderboard_update` | `{ rankings }` | Live leaderboard |
+| `contest_ended` | `{ finalRankings }` | Contest completion |
+
+## 🎨 UI Features
+
+- **Dark/Light mode** with system preference detection
+- **Responsive design** for all screen sizes
+- **Smooth animations** using CSS transitions
+- **Glass morphism** UI elements
+- **Real-time updates** without page refresh
+- **Toast notifications** for user feedback
+
+## 🔒 Security
+
+- JWT tokens for stateless authentication
+- Password hashing with bcrypt
+- Role-based route protection
+- Input validation with Zod
+- SQL injection prevention via Prisma ORM
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Commit changes: `git commit -m 'Add amazing feature'`
+4. Push to branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request
+
+> **Note**: Direct pushes to `main` are disabled. All changes must go through pull requests.
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- [Turborepo](https://turbo.build/) for monorepo tooling
+- [Prisma](https://prisma.io/) for database ORM
+- [Google Gemini](https://ai.google.dev/) for AI question generation
+- [Lucide](https://lucide.dev/) for icons
+
+---
+
+<p align="center">
+  Made with ❤️ by <a href="https://github.com/AmritHehe">Amrit</a>
+</p>
