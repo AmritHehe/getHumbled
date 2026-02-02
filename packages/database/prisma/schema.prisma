@@ -64,7 +64,6 @@ model Contests{
   MCQ MCQ[]
   codeQ Code[]
   submissions submissions[]
-
 }
 //we can add a type in contest that either its private or public or or or 
 // we can make a entire different public contest table 
@@ -96,21 +95,25 @@ model LeaderBoard{
   contest Contests @relation(fields: [contestId] , references: [id] , onDelete: Cascade)
   contestId String @unique
   score Score[]
+  isFinaLized Boolean @default(false)
 }
 model Score{
   id String @id @default(cuid()) @unique
   user String
-  Rank String
+  TotalScore String
+  rank Int
   leaderBoard LeaderBoard @relation(fields: [leaderboardId] , references: [id] , onDelete: Cascade)
   leaderboardId String
+
+  @@unique([user , leaderboardId])
 }
 model submissions{ 
   id String @id @default(cuid())@unique
-  user User @relation(fields: [userId] , references: [id])
+  user User @relation(fields: [userId] , references: [id], onDelete: Cascade)
   userId String 
-  contest Contests @relation(fields: [contestId], references: [id])
+  contest Contests @relation(fields: [contestId], references: [id]  , onDelete: Cascade)
   contestId String
-  mcq  MCQ @relation(fields: [questionId] , references: [id])
+  mcq  MCQ @relation(fields: [questionId] , references: [id] , onDelete: Cascade)
   questionId String
   selectedOption MCQs
   isCorrect Boolean @default(false)
