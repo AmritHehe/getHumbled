@@ -1,6 +1,6 @@
 import type { ApiResponse, AuthResponse, Contest, SignInData, SignUpData, CreateContestData, CreateMCQData } from './types';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3004';
 
 class ApiClient {
     private token: string | null = null;

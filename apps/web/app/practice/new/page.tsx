@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 
 export default function CreatePracticeQuizPage() {
     const router = useRouter();
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, isLoading: authLoading } = useAuth();
     const [isLoading, setIsLoading] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
     const [formData, setFormData] = useState({
@@ -19,13 +19,13 @@ export default function CreatePracticeQuizPage() {
         discription: '',
     });
 
-    // Redirect if not authenticated
+    // Redirect if not authenticated (only after auth has loaded)
     React.useEffect(() => {
-        if (!isAuthenticated) {
+        if (!authLoading && !isAuthenticated) {
             toast.error('Please sign in to create practice quizzes');
             router.push('/auth/signin');
         }
-    }, [isAuthenticated, router]);
+    }, [isAuthenticated, authLoading, router]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

@@ -150,13 +150,24 @@ export default function HomePage() {
           <div className="text-center max-w-md mx-auto">
             <h2 className="mb-4">Ready to compete?</h2>
             <p className="text-[var(--text-secondary)] mb-8">
-              Create a free account and start competing today.
+              {isAuthenticated
+                ? 'Jump into a contest and test your skills.'
+                : 'Create a free account and start competing today.'
+              }
             </p>
-            <Link href="/auth/signup">
-              <button className="px-8 py-3 text-sm font-medium bg-[var(--accent)] text-[var(--bg-primary)] rounded-lg hover:opacity-90 transition-opacity">
-                Create Account
-              </button>
-            </Link>
+            {isAuthenticated ? (
+              <Link href="/contests">
+                <button className="px-8 py-3 text-sm font-medium bg-[var(--accent)] text-[var(--bg-primary)] rounded-lg hover:opacity-90 transition-opacity">
+                  Browse Contests
+                </button>
+              </Link>
+            ) : (
+              <Link href="/auth/signup">
+                <button className="px-8 py-3 text-sm font-medium bg-[var(--accent)] text-[var(--bg-primary)] rounded-lg hover:opacity-90 transition-opacity">
+                  Create Account
+                </button>
+              </Link>
+            )}
           </div>
         </div>
       </section>
