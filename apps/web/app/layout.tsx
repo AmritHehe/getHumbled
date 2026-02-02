@@ -7,6 +7,8 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Toaster } from "@/components/ui/Toaster";
 
+import { Analytics } from "@vercel/analytics/next"
+
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
@@ -37,6 +39,7 @@ export default function RootLayout({
               <Navbar />
               <main className="flex-1 pt-14">
                 {children}
+                <Analytics />
               </main>
               <Footer />
             </div>
