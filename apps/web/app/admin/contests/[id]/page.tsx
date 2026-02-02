@@ -3,7 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { ArrowLeft, Plus, Edit, Trash2, Play, Pause, Brain, Code, FileQuestion, Sparkles } from 'lucide-react';
+import { ArrowLeft, Plus, Edit, Trash2, Play, Pause, Brain, Code, FileQuestion, Sparkles, Trophy, Check, Loader2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -14,6 +15,7 @@ export default function AdminContestDetailPage() {
     const params = useParams();
     const [contest, setContest] = useState<Contest | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [isFinalizing, setIsFinalizing] = useState(false);
 
     useEffect(() => {
         async function fetchContest() {
@@ -44,11 +46,51 @@ export default function AdminContestDetailPage() {
         );
     }
 
-    // Combine MCQs and Code questions for display
+    // Combine MCQs and Code questions for display with generated srNo
     const questions = [
-        ...(contest.MCQ || []).map(q => ({ ...q, type: 'MCQ' })),
-        ...(contest.codeQ || []).map(q => ({ ...q, type: 'CODE' }))
-    ].sort((a, b) => a.srNo - b.srNo);
+        ...(contest.MCQ || []).map((q, idx) => ({ ...q, type: 'MCQ', displaySrNo: q.srNo || idx + 1 })),
+        ...(contest.codeQ || []).map((q, idx) => ({ ...q, type: 'CODE', displaySrNo: q.srNo || idx + 1 }))
+    ].sort((a, b) => a.displaySrNo - b.displaySrNo);
+
+    // Handle finalize leaderboard via WebSocket
+    const handleFinalizeLeaderboard = async () => {
+        if (!contest) return;
+        setIsFinalizing(true);
+
+        try {
+            const token = localStorage.getItem('token');
+            const wsUrl = `${process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8080'}?token=${token}`;
+            const ws = new WebSocket(wsUrl);
+
+            ws.onopen = () => {
+                ws.send(JSON.stringify({ type: 'finalizeContest', contestId: contest.id }));
+            };
+
+            ws.onmessage = async (event) => {
+                const response = JSON.parse(event.data);
+                if (response.success) {
+                    toast.success('Leaderboard finalized!');
+                    // Refresh contest data
+                    const refreshed = await api.getContest(params.id as string);
+                    if (refreshed.success && refreshed.data) {
+                        setContest(refreshed.data);
+                    }
+                } else {
+                    toast.error(response.error || 'Failed to finalize');
+                }
+                setIsFinalizing(false);
+                ws.close();
+            };
+
+            ws.onerror = () => {
+                toast.error('WebSocket connection failed');
+                setIsFinalizing(false);
+            };
+        } catch (error) {
+            toast.error('Failed to finalize leaderboard');
+            setIsFinalizing(false);
+        }
+    };
 
     return (
         <div className="p-8">
@@ -75,6 +117,23 @@ export default function AdminContestDetailPage() {
                     <p className="text-[var(--text-secondary)]">{contest.discription}</p>
                 </div>
                 <div className="flex items-center gap-3">
+                    {/* Finalize Leaderboard button for real contests */}
+                    {contest.mode === 'real' && (
+                        (contest as any).leaderboard?.isFinaLized ? (
+                            <Button variant="secondary" disabled leftIcon={<Check className="w-4 h-4" />}>
+                                Finalized
+                            </Button>
+                        ) : (
+                            <Button
+                                variant="secondary"
+                                leftIcon={isFinalizing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trophy className="w-4 h-4" />}
+                                onClick={handleFinalizeLeaderboard}
+                                disabled={isFinalizing}
+                            >
+                                {isFinalizing ? 'Finalizing...' : 'Finalize Leaderboard'}
+                            </Button>
+                        )
+                    )}
                     <Link href={`/admin/contests/${params.id}/ai`}>
                         <Button variant="secondary" leftIcon={<Sparkles className="w-4 h-4" />}>
                             Create with AI
@@ -122,7 +181,7 @@ export default function AdminContestDetailPage() {
                             >
                                 <div className="flex items-center gap-4 flex-1 min-w-0 mr-4">
                                     <div className="w-10 h-10 shrink-0 rounded-lg bg-[var(--accent-primary)]/10 flex items-center justify-center text-[var(--accent-primary)] font-bold">
-                                        {question.srNo || '?'}
+                                        {question.displaySrNo}
                                     </div>
                                     <div className="min-w-0">
                                         <p className="font-medium text-[var(--text-primary)] truncate">{question.question?.split('\n')[0] || 'No question text'}</p>
@@ -136,8 +195,14 @@ export default function AdminContestDetailPage() {
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <Button variant="ghost" size="sm" className="p-2 text-[var(--text-muted)] hover:text-[var(--text-primary)]">
-                                        <Edit className="w-4 h-4" />
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="group p-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] min-w-[60px]"
+                                        onClick={() => toast('Coming Soon!', { icon: '🚧' })}
+                                    >
+                                        <Edit className="w-4 h-4 group-hover:hidden" />
+                                        <span className="hidden group-hover:block text-xs">Soon</span>
                                     </Button>
                                 </div>
                             </div>

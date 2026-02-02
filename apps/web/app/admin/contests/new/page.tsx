@@ -45,9 +45,9 @@ export default function CreateContestPage() {
             ContestTotalTime: formData.duration,
         });
 
-        if (response.success) {
-            toast.success('Contest created successfully!');
-            router.push('/admin/contests');
+        if (response.success && response.data) {
+            toast.success('Contest created! Now add questions.');
+            router.push(`/admin/contests/${response.data.contestId}`);
         } else {
             toast.error(response.error || 'Failed to create contest');
         }

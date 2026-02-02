@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { ArrowLeft, Calendar, Clock, Brain, Code, Play, Bell, BookOpen } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, Brain, Code, Play, Bell, BookOpen, Trophy, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { api } from '@/lib/api';
 import type { Contest, ContestState } from '@/lib/types';
@@ -56,7 +56,6 @@ export default function ContestDetailPage() {
         );
     }
 
-    // Determine badge and action based on contest state
     const getStateBadge = () => {
         switch (contestState) {
             case 'LIVE':
@@ -78,7 +77,12 @@ export default function ContestDetailPage() {
                     </span>
                 );
             default:
-                return null;
+                // Closed contest - show ended badge
+                return (
+                    <span className="text-xs px-2 py-1 rounded bg-[var(--bg-elevated)] text-[var(--text-muted)]">
+                        Contest Ended
+                    </span>
+                );
         }
     };
 
@@ -93,12 +97,21 @@ export default function ContestDetailPage() {
                     </Link>
                 );
             case 'PRACTICE':
+                // Check if this was originally a REAL contest (now ended and available for practice)
+                const wasRealContest = contest.mode === 'real';
                 return (
-                    <Link href={`/contests/${contest.id}/practice`}>
-                        <Button variant="primary" className="w-full" leftIcon={<BookOpen className="w-4 h-4" />}>
-                            Start Practice
-                        </Button>
-                    </Link>
+                    <div className="space-y-3">
+                        {wasRealContest && (
+                            <p className="text-sm text-[var(--text-muted)] text-center bg-[var(--bg-secondary)] p-3 rounded-lg">
+                                This live contest has ended and is now available for practice.
+                            </p>
+                        )}
+                        <Link href={`/contests/${contest.id}/practice`}>
+                            <Button variant="primary" className="w-full" leftIcon={<BookOpen className="w-4 h-4" />}>
+                                Start Practice
+                            </Button>
+                        </Link>
+                    </div>
                 );
             case 'UPCOMING':
                 return (
@@ -107,12 +120,18 @@ export default function ContestDetailPage() {
                     </Button>
                 );
             default:
+                // Closed real contest - show message about practice coming
                 return (
-                    <Link href={`/contests/${contest.id}/leaderboard`}>
-                        <Button variant="secondary" className="w-full">
-                            View Results
-                        </Button>
-                    </Link>
+                    <div className="space-y-3">
+                        <p className="text-sm text-[var(--text-muted)] text-center">
+                            This contest has ended. It will soon be available in practice mode.
+                        </p>
+                        <Link href={`/contests/${contest.id}/leaderboard`}>
+                            <Button variant="secondary" className="w-full">
+                                View Results
+                            </Button>
+                        </Link>
+                    </div>
                 );
         }
     };
@@ -186,6 +205,54 @@ export default function ContestDetailPage() {
                             <li>• Any form of cheating will result in disqualification.</li>
                         </ul>
                     </div>
+
+                    {/* Leaderboard for ended real contests */}
+                    {contest.mode === 'real' && contestState === 'PRACTICE' && (
+                        <div className="card p-6">
+                            <div className="flex items-center gap-2 mb-4">
+                                <Trophy className="w-5 h-5 text-[var(--text-primary)]" />
+                                <h2 className="font-medium text-[var(--text-primary)]">
+                                    Leaderboard
+                                </h2>
+                            </div>
+                            {(contest as any).leaderboard?.isFinaLized ? (
+                                <div className="space-y-2">
+                                    {(contest as any).leaderboard?.score?.slice(0, 10).map((entry: any, idx: number) => (
+                                        <div
+                                            key={entry.id || idx}
+                                            className="flex items-center justify-between p-3 rounded-lg bg-[var(--bg-secondary)]"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${idx === 0 ? 'bg-amber-500/20 text-amber-500' :
+                                                        idx === 1 ? 'bg-gray-400/20 text-gray-400' :
+                                                            idx === 2 ? 'bg-orange-500/20 text-orange-500' :
+                                                                'bg-[var(--bg-elevated)] text-[var(--text-muted)]'
+                                                    }`}>
+                                                    {entry.rank || idx + 1}
+                                                </span>
+                                                <span className="text-sm text-[var(--text-primary)]">
+                                                    {entry.user?.slice(0, 8)}...
+                                                </span>
+                                            </div>
+                                            <span className="text-sm font-medium text-[var(--text-primary)]">
+                                                {entry.TotalScore} pts
+                                            </span>
+                                        </div>
+                                    ))}
+                                    {(!((contest as any).leaderboard?.score) || (contest as any).leaderboard?.score?.length === 0) && (
+                                        <p className="text-sm text-[var(--text-muted)] text-center py-4">
+                                            No participants yet.
+                                        </p>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="flex items-center justify-center gap-2 py-6 text-[var(--text-muted)]">
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    <span className="text-sm">Admin is finalizing leaderboard...</span>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 {/* Sidebar */}

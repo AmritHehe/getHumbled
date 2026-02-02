@@ -6,13 +6,28 @@ import { cn } from '@/lib/utils';
 import { formatTime } from '@/lib/utils';
 
 interface TimerProps {
-    initialSeconds: number;
+    /** ISO date string of when the contest started */
+    startTime?: string;
+    /** Total contest duration in minutes */
+    totalMinutes?: number;
+    /** Fallback: initial seconds if startTime not provided */
+    initialSeconds?: number;
     onTimeUp?: () => void;
     className?: string;
 }
 
-export function Timer({ initialSeconds, onTimeUp, className }: TimerProps) {
-    const [seconds, setSeconds] = useState(initialSeconds);
+export function Timer({ startTime, totalMinutes, initialSeconds, onTimeUp, className }: TimerProps) {
+    const [seconds, setSeconds] = useState(() => {
+        // If we have startTime and totalMinutes, calculate remaining time
+        if (startTime && totalMinutes) {
+            const start = new Date(startTime).getTime();
+            const end = start + totalMinutes * 60 * 1000;
+            const remaining = Math.max(0, Math.floor((end - Date.now()) / 1000));
+            return remaining;
+        }
+        // Otherwise use initialSeconds
+        return initialSeconds || 0;
+    });
 
     useEffect(() => {
         if (seconds <= 0) {
@@ -21,7 +36,13 @@ export function Timer({ initialSeconds, onTimeUp, className }: TimerProps) {
         }
 
         const interval = setInterval(() => {
-            setSeconds((prev) => prev - 1);
+            setSeconds((prev) => {
+                const next = prev - 1;
+                if (next <= 0) {
+                    onTimeUp?.();
+                }
+                return next;
+            });
         }, 1000);
 
         return () => clearInterval(interval);

@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Trophy, HelpCircle, Users, Settings, ChevronLeft, ChevronRight } from 'lucide-react';
+import { LayoutDashboard, Trophy, HelpCircle, Users, Settings, ChevronLeft, ChevronRight, BookOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const sidebarLinks = [
@@ -12,6 +12,7 @@ const sidebarLinks = [
     { href: '/admin/questions', label: 'Questions', icon: HelpCircle },
     { href: '/admin/users', label: 'Users', icon: Users },
     { href: '/admin/settings', label: 'Settings', icon: Settings },
+    { href: '/admin/guide', label: 'Guide', icon: BookOpen },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

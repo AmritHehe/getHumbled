@@ -365,8 +365,7 @@ export default function LiveContestPage() {
 
     // userId is now from state set in useEffect
 
-    // Calculate estimated duration
-    const estimatedDuration = totalQuestions * 2 * 60; // 2 min per question default
+    // Timer is now based on contest.StartTime and contest.ContestTotalTime
 
     if (isLoading) {
         return (
@@ -473,7 +472,11 @@ export default function LiveContestPage() {
                         </div>
 
                         {/* Right: Timer */}
-                        <Timer initialSeconds={estimatedDuration} onTimeUp={handleFinishContest} />
+                        <Timer
+                            startTime={contest.StartTime}
+                            totalMinutes={contest.ContestTotalTime || 60}
+                            onTimeUp={handleFinishContest}
+                        />
                     </div>
                 </div>
             </header>

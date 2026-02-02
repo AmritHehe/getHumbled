@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Plus, Search, Eye, Edit, Trash2 } from 'lucide-react';
+import { Plus, Search, Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { cn } from '@/lib/utils';
@@ -125,23 +125,25 @@ export default function AdminContestsPage() {
                                         <span className="text-sm text-[var(--text-muted)]">{contest.type}</span>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className={cn(
-                                            'text-xs px-2 py-1 rounded',
-                                            contest.status === 'LIVE' && 'bg-green-500/10 text-green-600',
-                                            contest.status === 'UPCOMING' && 'bg-amber-500/10 text-amber-600',
-                                            contest.status === 'CLOSED' && 'bg-[var(--bg-elevated)] text-[var(--text-muted)]'
-                                        )}>
-                                            {contest.status}
-                                        </span>
+                                        <div className="flex items-center gap-2">
+                                            <span className={cn(
+                                                'text-xs px-2 py-1 rounded',
+                                                contest.status === 'LIVE' && 'bg-green-500/10 text-green-600',
+                                                contest.status === 'UPCOMING' && 'bg-amber-500/10 text-amber-600',
+                                                contest.status === 'CLOSED' && 'bg-[var(--bg-elevated)] text-[var(--text-muted)]'
+                                            )}>
+                                                {contest.status}
+                                            </span>
+                                            {contest.mode === 'practice' && (
+                                                <span className="text-xs px-2 py-1 rounded bg-blue-500/10 text-blue-500">
+                                                    Practice
+                                                </span>
+                                            )}
+                                        </div>
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center justify-end gap-1">
                                             <Link href={`/admin/contests/${contest.id}`}>
-                                                <Button variant="ghost" size="sm" className="p-2">
-                                                    <Eye className="w-4 h-4" />
-                                                </Button>
-                                            </Link>
-                                            <Link href={`/admin/contests/${contest.id}/edit`}>
                                                 <Button variant="ghost" size="sm" className="p-2">
                                                     <Edit className="w-4 h-4" />
                                                 </Button>

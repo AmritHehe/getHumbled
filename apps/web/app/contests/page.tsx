@@ -50,8 +50,15 @@ export default function ContestsPage() {
     }, [activeFilter]);
 
     const filteredContests = contests.filter((contest) => {
-        return contest.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        const matchesSearch = contest.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
             contest.discription.toLowerCase().includes(searchQuery.toLowerCase());
+
+        // When LIVE filter is active, exclude practice mode contests
+        if (activeFilter === 'LIVE' && (contest as any).mode === 'practice') {
+            return false;
+        }
+
+        return matchesSearch;
     });
 
     // Sort: LIVE first, then UPCOMING, then others
@@ -124,20 +131,30 @@ export default function ContestsPage() {
                         <Link key={contest.id} href={`/contests/${contest.id}`}>
                             <div className="card p-5 hover:border-[var(--border-hover)] transition-colors">
                                 <div className="flex items-center gap-2 mb-3">
-                                    {contest.status === 'LIVE' && (
-                                        <span className="text-xs px-2 py-1 rounded bg-green-500/10 text-green-600 flex items-center gap-1">
-                                            <span className="live-dot" /> Live
-                                        </span>
-                                    )}
-                                    {contest.status === 'UPCOMING' && (
-                                        <span className="text-xs px-2 py-1 rounded bg-amber-500/10 text-amber-600">
-                                            Upcoming
-                                        </span>
-                                    )}
-                                    {(contest as any).mode === 'practice' && (
+                                    {/* Show Practice badge for practice mode contests */}
+                                    {(contest as any).mode === 'practice' ? (
                                         <span className="text-xs px-2 py-1 rounded bg-blue-500/10 text-blue-600">
                                             Practice
                                         </span>
+                                    ) : (
+                                        <>
+                                            {/* Only show LIVE/UPCOMING for real mode contests */}
+                                            {contest.status === 'LIVE' && (
+                                                <span className="text-xs px-2 py-1 rounded bg-green-500/10 text-green-600 flex items-center gap-1">
+                                                    <span className="live-dot" /> Live
+                                                </span>
+                                            )}
+                                            {contest.status === 'UPCOMING' && (
+                                                <span className="text-xs px-2 py-1 rounded bg-amber-500/10 text-amber-600">
+                                                    Upcoming
+                                                </span>
+                                            )}
+                                            {contest.status === 'CLOSED' && (
+                                                <span className="text-xs px-2 py-1 rounded bg-[var(--bg-elevated)] text-[var(--text-muted)]">
+                                                    Ended
+                                                </span>
+                                            )}
+                                        </>
                                     )}
                                     <span className="text-xs px-2 py-1 rounded bg-[var(--bg-elevated)] text-[var(--text-muted)]">
                                         {contest.type}

@@ -9,22 +9,6 @@ import { Button } from '@/components/ui/Button';
 import { api } from '@/lib/api';
 import { cn } from '@/lib/utils';
 
-// Neural network AI logo
-function AILogo({ className, animated = false }: { className?: string; animated?: boolean }) {
-    return (
-        <svg viewBox="0 0 48 48" className={cn("text-[var(--accent-primary)]", className)} fill="none">
-            <circle cx="24" cy="8" r="3" fill="currentColor" className={cn(animated && "animate-pulse")} />
-            <circle cx="12" cy="24" r="3" fill="currentColor" opacity="0.7" className={cn(animated && "animate-pulse [animation-delay:200ms]")} />
-            <circle cx="36" cy="24" r="3" fill="currentColor" opacity="0.7" className={cn(animated && "animate-pulse [animation-delay:400ms]")} />
-            <circle cx="16" cy="40" r="3" fill="currentColor" opacity="0.5" className={cn(animated && "animate-pulse [animation-delay:600ms]")} />
-            <circle cx="32" cy="40" r="3" fill="currentColor" opacity="0.5" className={cn(animated && "animate-pulse [animation-delay:800ms]")} />
-            <path d="M24 11 L12 21 M24 11 L36 21 M12 27 L16 37 M36 27 L32 37 M16 37 L32 37 M12 24 L36 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.3" />
-            <circle cx="24" cy="24" r="5" fill="currentColor" className={cn(animated && "animate-pulse")} />
-            <circle cx="24" cy="24" r="8" stroke="currentColor" strokeWidth="1" opacity="0.3" className={cn(animated && "animate-[spin_4s_linear_infinite]")} />
-        </svg>
-    );
-}
-
 const examples = [
     { topic: 'JavaScript Closures', level: 'Intermediate' },
     { topic: 'Data Structures', level: 'Advanced' },
@@ -118,9 +102,15 @@ export default function AIQuizGeneratorPage() {
                         </div>
                     ) : isLoading ? (
                         <div className="flex flex-col items-center">
-                            <div className="relative mb-8">
-                                <div className="absolute inset-0 bg-[var(--accent-primary)]/20 blur-3xl rounded-full" />
-                                <AILogo className="relative w-28 h-28" animated />
+                            {/* Simple pulsing dots loader */}
+                            <div className="flex items-center gap-3 mb-8">
+                                {[0, 1, 2].map((i) => (
+                                    <div
+                                        key={i}
+                                        className="w-4 h-4 rounded-full bg-[var(--accent-primary)] animate-pulse"
+                                        style={{ animationDelay: `${i * 200}ms` }}
+                                    />
+                                ))}
                             </div>
                             <h1 className="text-2xl font-bold text-[var(--text-primary)] mb-4">{loadingMessages[loadingPhase]}</h1>
                             <div className="flex items-center gap-2">

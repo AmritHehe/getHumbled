@@ -114,7 +114,9 @@ export default function PracticeContestPage() {
                 toast.success('Correct answer! +10 pts');
                 setCorrectCount(prev => prev + 1);
             } else {
-                toast.error('Incorrect answer');
+                // Backend sends correct answer in message field: "correct answer" + answer
+                const correctAnswer = (response as any).message?.replace('correct answer', '').trim() || '?';
+                toast.error(`Incorrect, correct answer: ${correctAnswer}`);
             }
 
             setAnsweredCount(prev => prev + 1);
