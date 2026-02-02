@@ -142,7 +142,8 @@ export async function GetContest(req : Request  , res : Response){
                         question : req.role === "ADMIN",
                         avgTTinMins : req.role === "ADMIN" , 
                     }
-                }
+                },
+                leaderboard : true
             }
         })      
        
@@ -186,6 +187,9 @@ export async function GetAllContest(req : Request  , res : Response){
             allContest = await prisma.contests.findMany({
                 where : {
                     mode : data.mode
+                },
+                orderBy : { 
+                    srNo : 'desc'
                 }
             })
         }
@@ -286,10 +290,24 @@ export async function JoinpracticeContest(req: Request , res: Response) {
             id : data.contestId
         } , 
         select  : { 
-            mode : true
+            mode : true,
+            StartDate : true, 
+            ContestTotalTime : true , 
         }
     })
-    if(contest?.mode == "real"){ 
+    if(!contest){ 
+        return res.status(404).json({
+            success : false , 
+            message : " cant find the contest" , 
+            error : "NOT_FOUND"
+        })
+    }
+    const contestState = await getContestState({
+            StartDate: contest.StartDate,
+            ContestTotalTime: contest.ContestTotalTime,
+            mode: contest.mode,
+         })
+    if(contest?.mode == "real" && contestState!= "PRACTICE"){ 
         return res.status(403).json({
             success : false , 
             error : "FORBIDDEN" , 
@@ -446,7 +464,8 @@ export async function SubmitAnswerOfPracticeContest(req:Request , res : Response
                 error : "incorrect",
                 data :  { 
                     randomQuestion : randomQuestion
-                }
+                }, 
+                message : "correct answer" +  correctAnswer
             })
             
         }
