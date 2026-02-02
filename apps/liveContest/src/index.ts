@@ -4,7 +4,7 @@ import { checkUser } from './middleware';
 import { redisClient } from './redisClient';
 import type { JwtPayload } from 'jsonwebtoken';
 import { StartsubmissionCron } from './submissionCron';
-import { success } from 'zod';
+import { boolean, success } from 'zod';
 
 
 
@@ -441,7 +441,26 @@ wss.on('connection', async function connection(ws , request) {
             }
 
 
-    }
+        }
+        if(parseData.type == "finalizeContest"){ 
+            const user = users.get(ws)
+            const role = user?.role
+            if(role != "ADMIN"){ 
+                return ws.send(JSON.stringify({ 
+                        success : false , 
+                        error : "FORBIDDEN" , 
+                        message : "INVALID ROLE"
+                    }
+                ))
+            }
+            const contestId = parseData.contestId
+            const addLeaderBoard : Boolean = await addLeaderBoardToDB(contestId)
+
+            return ws.send(JSON.stringify({ 
+                success : addLeaderBoard ,
+                data : null , 
+            }))
+        }
     console.log('received: %s', data);
     });
     ws.on("close" , ()=> { 
@@ -490,4 +509,57 @@ async function GetRandomQuestion(contestId : string , userId : string , remainin
         return RandomQuestion
     }
 
+}
+
+
+async function addLeaderBoardToDB( contestId : string)  : Promise<boolean> { 
+   
+    try { 
+        return await prisma.$transaction(async (prisma) => { 
+            const getLeaderboardState = await prisma.leaderBoard.upsert({ 
+                where : { 
+                    contestId : contestId
+                },
+                update : { 
+
+                }, 
+                create : { 
+                    contestId
+                }
+            })
+            if(getLeaderboardState.isFinaLized == true) { 
+                return true
+            }
+            const Redisleaderboard = await redisClient.zRangeWithScores(`leaderboard:${contestId}` , 0 , -1 , { REV : true})
+            const modifiedLeaderboard = Redisleaderboard.map((x : any , i  ) => ({ 
+                user : x.value , 
+                TotalScore : x.score , 
+                rank : i + 1 , 
+                leaderboardId : getLeaderboardState.id, 
+
+            }))
+
+            const AddScoresInLeaderboard = await prisma.score.createMany({
+                data : modifiedLeaderboard,
+                skipDuplicates : true
+            })
+        
+
+            await prisma.leaderBoard.update({ 
+                where : { 
+                    contestId 
+                } , 
+                data : { 
+                    isFinaLized : true
+                }
+            }) 
+            return true 
+        })
+    }
+    catch(e){ 
+        console.log("submitting in leaderboard failed with error " + e )
+        return false
+    }
+    
+    
 }
