@@ -116,7 +116,7 @@ export async function GetContest(req : Request  , res : Response){
         })
     }
     const contestId = data.contestId ; 
-    
+    const role = req.role
     try { 
         let contest = await prisma.contests.findUnique({
             where : { 
@@ -139,7 +139,8 @@ export async function GetContest(req : Request  , res : Response){
                     select : { 
                         id : true ,
                         contestId : true , 
-   
+                        question : req.role === "ADMIN",
+                        avgTTinMins : req.role === "ADMIN" , 
                     }
                 }
             }
