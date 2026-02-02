@@ -1,12 +1,11 @@
 import type { Request , Response } from "express";
 import { ContestSchema, createUsingAISchema, GetAllContestSchema, GetContestSchema, JoinPracticeContestSchema, MCQSchema, ReAttemptPracticeSchema, SubmitPracticeAnswerSchema } from "../validators/contest.schema";
 import { prisma } from "@repo/database";
-import { generateText, type ModelMessage } from "ai";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { fetchSolution, MCQSolutionMap } from "../cache/solutionCache";
 import { GetRandomQuestion } from "../services/getRandomQuestion";
-import { use } from "react";
 import { getContestState } from "../services/getContestState";
+import { GenerateQuestions } from "../services/generateAIres";
 
 export async function CreateContest(req : Request  , res : Response){ 
     // const safeData = UserController(req , res);
@@ -21,16 +20,16 @@ export async function CreateContest(req : Request  , res : Response){
     
    
     const {data , success , error} = ContestSchema.safeParse(req.body)
-     if(role != "ADMIN" &&  data?.mode != "practice" ){ 
-        return res.status(403).json({
-            success : false , 
-            error : "wrong role ,acess forbidden"
-        })
-    }
     if(!success){ 
         return res.status(400).json({
             success : false , 
             error : "invalid schema" + error
+        })
+    }
+         if(role != "ADMIN" &&  data?.mode != "practice" ){ 
+        return res.status(403).json({
+            success : false , 
+            error : "wrong role ,acess forbidden"
         })
     }
     try { 
@@ -232,76 +231,24 @@ export async function CreateContestWithAI(req: Request , res : Response){
             error : "BAD_REQUEST"
         })
     }
-    const openRouter = createOpenRouter({
-        apiKey : process.env.OPENROUTER_API_KEY
-    })
-    let Context : ModelMessage[] = [
-        { 
-            role : "system",
-            content :  `You are an expert teacher who is creating test for his fellow students ,the user/student will provide you a topic and you have to create atleast 10 questions for it ! you can create more , I am using prisma create many thing so you have to only return an array of object , where each object will follow this exact schema model MCQ{
-                {
-                question String 
-                Solution MCQs
-                contestId String
-                points Int 
-                avgTTinMins Int @default(2)
-                }
 
-                the above schema is caseSenstive so keep that in mind 
-                follow the exact schema and return an array of objects , also how will all options store in database  weill you have to generate a question string  like this 
-
-                "
-                how many keys are there in keyboard
-
-                Options:
-                A) 100
-                B) 200
-                C) 300
-                D) 400
-                "
-                make sure to generate question string like above example as theres no seperate table to generate schema 
-                and the solution is enum of Captial A , B. , C , D , good luck 
-                `
-            
-        } , 
-        { 
-            role : "user" , 
-            content : data.prompt + "this is the contest ID u need to add in every question " + data.contestId
+    let Questions = await GenerateQuestions(data )
+    if(Questions == null){ 
+        console.log("ai response was bad , trying one more time ")
+        Questions = await GenerateQuestions(data , "moonshotai/kimi-k2.5")
+        if(Questions == null){ 
+            return res.status(409).json({ 
+                success : false , 
+                message : " AI response was bad , maybe try again" , 
+                error : "AI FAULURE"
+            })
         }
-    ]
-    const result = await generateText({
-        model  : openRouter("xiaomi/mimo-v2-flash"),
-        messages : Context , 
-        temperature : 0.2
-    })
-    console.log("result " + JSON.stringify(result))
-    console.log("^^^^^^^^^^^^^^^^^^^^^^^^^")
-    console.log("text" + result.text)
-    interface data { 
-        question : string ,
-        Solution :  "A" | "B" | "C" | "D"
-        contestId : string
-        points :  number 
-        avgTTinMins : number
     }
-    console.log("type of data of result txt" + typeof(result.text))
-    const rawText = result.text.trim();
-
-    const jsonArrayString = rawText.match(/\[[\s\S]*\]/)?.[0];
-    if (!jsonArrayString) {
-    return res.status(500).json({
-        success: false,
-        message: "Invalid AI response format",
-    });
-    }
-
-    const dataArray = JSON.parse(jsonArrayString);
-
     
     try { 
         const createAiTest = await prisma.mCQ.createMany({
 
-            data : dataArray
+            data : Questions
         })
         return res.status(200).json({
             success : true ,
@@ -316,9 +263,6 @@ export async function CreateContestWithAI(req: Request , res : Response){
             error : "BAD_REQUEST"
         })
     }
-    return res.status(200).json({
-        data : result
-    })
 }
 
 export async function JoinpracticeContest(req: Request , res: Response) {
