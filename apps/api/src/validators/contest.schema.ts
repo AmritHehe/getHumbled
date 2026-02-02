@@ -3,7 +3,7 @@ import z from "zod"
 
 export const ContestSchema = z.object({
     title : z.string().min(10).max(100),
-    discription : z.string().min(10).max(2000),
+    discription : z.string().min(10).max(10000),
     type : z.enum(["DSA" , "DEV"]),
     status : z.enum([  "UPCOMING" ,"LIVE" ,"CLOSED"]),
     mode : z.enum(["real" , "practice"]).default("real"),
