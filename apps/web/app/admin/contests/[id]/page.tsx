@@ -63,20 +63,33 @@ export default function AdminContestDetailPage() {
             const ws = new WebSocket(wsUrl);
 
             ws.onopen = () => {
-                ws.send(JSON.stringify({ type: 'finalizeContest', contestId: contest.id }));
+                // Wait for handshake then send finalize message
             };
 
+            let handshakeReceived = false;
             ws.onmessage = async (event) => {
-                const response = JSON.parse(event.data);
-                if (response.success) {
-                    toast.success('Leaderboard finalized!');
-                    // Refresh contest data
-                    const refreshed = await api.getContest(params.id as string);
-                    if (refreshed.success && refreshed.data) {
-                        setContest(refreshed.data);
+                // Skip non-JSON handshake message
+                if (!handshakeReceived) {
+                    handshakeReceived = true;
+                    // Now send the finalize message after handshake
+                    ws.send(JSON.stringify({ type: 'finalizeContest', contestId: contest.id }));
+                    return;
+                }
+
+                try {
+                    const response = JSON.parse(event.data);
+                    if (response.success) {
+                        toast.success('Leaderboard finalized!');
+                        // Refresh contest data
+                        const refreshed = await api.getContest(params.id as string);
+                        if (refreshed.success && refreshed.data) {
+                            setContest(refreshed.data);
+                        }
+                    } else {
+                        toast.error(response.error || 'Failed to finalize');
                     }
-                } else {
-                    toast.error(response.error || 'Failed to finalize');
+                } catch {
+                    // Ignore non-JSON messages
                 }
                 setIsFinalizing(false);
                 ws.close();
