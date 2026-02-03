@@ -100,7 +100,7 @@ model LeaderBoard{
 model Score{
   id String @id @default(cuid()) @unique
   user String
-  TotalScore String
+  TotalScore Int
   rank Int
   leaderBoard LeaderBoard @relation(fields: [leaderboardId] , references: [id] , onDelete: Cascade)
   leaderboardId String
