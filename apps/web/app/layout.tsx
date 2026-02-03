@@ -6,6 +6,7 @@ import { AuthProvider } from "@/lib/auth-context";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Toaster } from "@/components/ui/Toaster";
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 import { Analytics } from "@vercel/analytics/next"
 
@@ -40,6 +41,7 @@ export default function RootLayout({
               <main className="flex-1 pt-14">
                 {children}
                 <Analytics />
+                <SpeedInsights />
               </main>
               <Footer />
             </div>
