@@ -143,7 +143,12 @@ export async function GetContest(req : Request  , res : Response){
                         avgTTinMins : req.role === "ADMIN" , 
                     }
                 },
-                leaderboard : true
+                leaderboard : { 
+                    select : { 
+                        contestId : true , 
+                        score : true
+                    }
+                }
             }
         })      
        
