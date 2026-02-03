@@ -146,6 +146,7 @@ export async function GetContest(req : Request  , res : Response){
                 leaderboard : { 
                     select : { 
                         contestId : true , 
+                        isFinaLized : true , 
                         score : true
                     }
                 }
