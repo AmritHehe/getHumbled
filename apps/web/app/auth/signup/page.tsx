@@ -50,10 +50,10 @@ export default function SignUpPage() {
         <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center py-12 px-4">
             <div className="w-full max-w-sm">
                 <div className="text-center mb-8">
-                    <h1 className="text-2xl font-medium text-[var(--text-primary)] mb-2">
+                    <h1 className="text-2xl font-medium text-primary mb-2">
                         Create account
                     </h1>
-                    <p className="text-sm text-[var(--text-muted)]">
+                    <p className="text-sm text-muted">
                         Start your coding journey
                     </p>
                 </div>
@@ -99,9 +99,9 @@ export default function SignUpPage() {
                     </Button>
                 </form>
 
-                <p className="mt-6 text-center text-sm text-[var(--text-muted)]">
+                <p className="mt-6 text-center text-sm text-muted">
                     Already have an account?{' '}
-                    <Link href="/auth/signin" className="text-[var(--text-primary)] hover:underline">
+                    <Link href="/auth/signin" className="text-primary hover:underline">
                         Sign in
                     </Link>
                 </p>

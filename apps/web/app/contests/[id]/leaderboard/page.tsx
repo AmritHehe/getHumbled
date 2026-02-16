@@ -117,7 +117,7 @@ export default function LeaderboardPage() {
             {/* Back Link */}
             <Link
                 href={`/contests/${contestId}/live`}
-                className="inline-flex items-center gap-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] mb-8 transition-colors"
+                className="inline-flex items-center gap-2 text-secondary hover:text-primary mb-8 transition-colors"
             >
                 <ArrowLeft className="w-4 h-4" />
                 Back to Contest
@@ -126,10 +126,10 @@ export default function LeaderboardPage() {
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
                 <div>
-                    <h1 className="text-2xl font-bold text-[var(--text-primary)] mb-1">
+                    <h1 className="text-2xl font-bold text-primary mb-1">
                         Full Leaderboard
                     </h1>
-                    <p className="text-sm text-[var(--text-muted)]">
+                    <p className="text-sm text-muted">
                         {leaderboard.length} participants
                     </p>
                 </div>
@@ -145,18 +145,18 @@ export default function LeaderboardPage() {
             </div>
 
             {/* Leaderboard */}
-            <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border)] overflow-hidden">
+            <div className="bg-card rounded-2xl border border-default overflow-hidden">
                 {isLoading ? (
-                    <div className="py-20 text-center text-[var(--text-muted)]">
+                    <div className="py-20 text-center text-muted">
                         <Loader2 className="w-6 h-6 animate-spin mx-auto mb-3" />
                         Loading leaderboard...
                     </div>
                 ) : leaderboard.length === 0 ? (
-                    <div className="py-20 text-center text-[var(--text-muted)]">
+                    <div className="py-20 text-center text-muted">
                         No participants yet
                     </div>
                 ) : (
-                    <div className="divide-y divide-[var(--border)]">
+                    <div className="divide-y divide-default">
                         {leaderboard.map((entry, idx) => {
                             const isMe = entry.userId === currentUserId;
                             const displayName = entry.userName.length > 20
@@ -167,28 +167,28 @@ export default function LeaderboardPage() {
                                 <div
                                     key={entry.userId}
                                     className={`flex items-center gap-4 px-5 py-4 transition-colors ${isMe
-                                            ? 'bg-[var(--accent-primary)]/10'
-                                            : 'hover:bg-[var(--bg-elevated)]'
+                                            ? 'bg-accent-primary/10'
+                                            : 'hover:bg-elevated'
                                         }`}
                                 >
                                     {/* Rank */}
                                     <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold shrink-0 ${idx === 0 ? 'bg-yellow-500 text-black' :
                                             idx === 1 ? 'bg-gray-400 text-black' :
                                                 idx === 2 ? 'bg-amber-600 text-white' :
-                                                    'bg-[var(--bg-elevated)] text-[var(--text-muted)] border border-[var(--border)]'
+                                                    'bg-elevated text-muted border border-default'
                                         }`}>
                                         {idx < 3 ? <Trophy className="w-5 h-5" /> : idx + 1}
                                     </div>
 
                                     {/* Name */}
                                     <div className="flex-1 min-w-0">
-                                        <p className={`font-medium truncate ${isMe ? 'text-[var(--accent-primary)]' : 'text-[var(--text-primary)]'
+                                        <p className={`font-medium truncate ${isMe ? 'text-accent-primary' : 'text-primary'
                                             }`}>
                                             {displayName}
                                             {isMe && <span className="text-xs ml-2 opacity-60">(You)</span>}
                                         </p>
                                         {idx < 3 && (
-                                            <p className="text-xs text-[var(--text-muted)]">
+                                            <p className="text-xs text-muted">
                                                 {idx === 0 ? '🥇 1st Place' : idx === 1 ? '🥈 2nd Place' : '🥉 3rd Place'}
                                             </p>
                                         )}
@@ -196,10 +196,10 @@ export default function LeaderboardPage() {
 
                                     {/* Score */}
                                     <div className="text-right shrink-0">
-                                        <span className="font-mono font-bold text-lg text-[var(--text-primary)]">
+                                        <span className="font-mono font-bold text-lg text-primary">
                                             {entry.totalPoints}
                                         </span>
-                                        <span className="text-sm text-[var(--text-muted)] ml-1">pts</span>
+                                        <span className="text-sm text-muted ml-1">pts</span>
                                     </div>
                                 </div>
                             );

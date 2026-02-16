@@ -89,12 +89,12 @@ export default function CreatePracticeQuizPage() {
             />
 
             {/* Ambient glow */}
-            <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[var(--accent)]/3 blur-[150px] rounded-full pointer-events-none" />
+            <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-accent/3 blur-[150px] rounded-full pointer-events-none" />
 
             {/* Back button - top left */}
             <Link
                 href="/contests"
-                className="absolute top-6 left-6 inline-flex items-center gap-2 text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors group z-10"
+                className="absolute top-6 left-6 inline-flex items-center gap-2 text-sm text-muted hover:text-primary transition-colors group z-10"
             >
                 <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
                 Back
@@ -105,8 +105,8 @@ export default function CreatePracticeQuizPage() {
                 <div className="w-full max-w-xl">
                     {/* Header */}
                     <div className="text-center mb-10">
-                        <h1 className="text-4xl font-bold text-[var(--text-primary)] mb-3">Create Practice Quiz</h1>
-                        <p className="text-lg text-[var(--text-secondary)]">
+                        <h1 className="text-4xl font-bold text-primary mb-3">Create Practice Quiz</h1>
+                        <p className="text-lg text-secondary">
                             Name your quiz, then AI will generate questions
                         </p>
                     </div>
@@ -120,7 +120,7 @@ export default function CreatePracticeQuizPage() {
                                 value={formData.title}
                                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                                 placeholder="Quiz name..."
-                                className="w-full px-5 py-4 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--accent)] transition-all text-lg"
+                                className="w-full px-5 py-4 rounded-xl border border-default bg-card text-primary placeholder:text-muted focus:outline-none focus:border-accent transition-all text-lg"
                                 disabled={isLoading}
                             />
                         </div>
@@ -131,7 +131,7 @@ export default function CreatePracticeQuizPage() {
                                 value={formData.discription}
                                 onChange={(e) => setFormData({ ...formData, discription: e.target.value })}
                                 placeholder="What will your quiz be about? e.g., JavaScript closures for beginners..."
-                                className="w-full h-32 px-5 py-4 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] resize-none focus:outline-none focus:border-[var(--accent)] transition-all text-base leading-relaxed"
+                                className="w-full h-32 px-5 py-4 rounded-xl border border-default bg-card text-primary placeholder:text-muted resize-none focus:outline-none focus:border-accent transition-all text-base leading-relaxed"
                                 disabled={isLoading}
                             />
 
@@ -144,7 +144,7 @@ export default function CreatePracticeQuizPage() {
                                     onMouseLeave={() => setIsHovered(false)}
                                     className={cn(
                                         "relative overflow-hidden rounded-lg font-medium transition-all",
-                                        "bg-[var(--accent)] text-[var(--bg-primary)]",
+                                        "bg-accent text-surface",
                                         "disabled:opacity-30 disabled:cursor-not-allowed",
                                         "hover:opacity-90",
                                         "px-5 py-2.5 min-w-[120px]"
@@ -175,7 +175,7 @@ export default function CreatePracticeQuizPage() {
 
                     {/* Examples */}
                     <div className="mt-8 text-center">
-                        <p className="text-sm text-[var(--text-muted)] mb-4">Quick start</p>
+                        <p className="text-sm text-muted mb-4">Quick start</p>
                         <div className="flex flex-wrap gap-2 justify-center">
                             {[
                                 { title: 'JavaScript Basics', desc: 'Fundamentals of JavaScript for beginners' },
@@ -187,7 +187,7 @@ export default function CreatePracticeQuizPage() {
                                     type="button"
                                     onClick={() => setFormData({ title: example.title, discription: example.desc })}
                                     disabled={isLoading}
-                                    className="px-4 py-2 rounded-full bg-[var(--bg-card)] border border-[var(--border)] text-sm text-[var(--text-secondary)] hover:border-[var(--border-hover)] hover:text-[var(--text-primary)] transition-all disabled:opacity-50"
+                                    className="px-4 py-2 rounded-full bg-card border border-default text-sm text-secondary hover:border-hover hover:text-primary transition-all disabled:opacity-50"
                                 >
                                     {example.title}
                                 </button>

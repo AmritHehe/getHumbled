@@ -84,7 +84,7 @@ export default function AddQuestionPage() {
             {/* Back Link */}
             <Link
                 href={`/admin/contests/${params.id}`}
-                className="inline-flex items-center gap-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] mb-8 transition-colors"
+                className="inline-flex items-center gap-2 text-secondary hover:text-primary mb-8 transition-colors"
             >
                 <ArrowLeft className="w-4 h-4" />
                 Back to Contest
@@ -92,10 +92,10 @@ export default function AddQuestionPage() {
 
             {/* Header */}
             <div className="mb-8">
-                <h1 className="text-3xl font-bold text-[var(--text-primary)] mb-2">
+                <h1 className="text-3xl font-bold text-primary mb-2">
                     Add Question
                 </h1>
-                <p className="text-[var(--text-secondary)]">
+                <p className="text-secondary">
                     Create a new question for this contest
                 </p>
             </div>
@@ -104,7 +104,7 @@ export default function AddQuestionPage() {
                 {/* Question Type */}
                 <Card>
                     <CardContent className="p-6">
-                        <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
+                        <h2 className="text-lg font-semibold text-primary mb-4">
                             Question Type
                         </h2>
                         <div className="flex gap-3">
@@ -116,8 +116,8 @@ export default function AddQuestionPage() {
                                     className={cn(
                                         'flex-1 py-4 px-6 rounded-xl border font-medium transition-all',
                                         questionType === type
-                                            ? 'border-[var(--accent-primary)] bg-[var(--accent-primary)]/10 text-[var(--accent-primary)]'
-                                            : 'border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--border-hover)]'
+                                            ? 'border-accent-primary bg-accent-primary/10 text-accent-primary'
+                                            : 'border-default text-secondary hover:border-hover'
                                     )}
                                 >
                                     {type === 'MCQ' ? '📝 Multiple Choice' : '💻 Coding'}
@@ -130,7 +130,7 @@ export default function AddQuestionPage() {
                 {/* Question Content */}
                 <Card>
                     <CardContent className="p-6 space-y-5">
-                        <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+                        <h2 className="text-lg font-semibold text-primary">
                             Question Content
                         </h2>
 
@@ -168,7 +168,7 @@ export default function AddQuestionPage() {
                 {questionType === 'MCQ' ? (
                     <Card>
                         <CardContent className="p-6 space-y-5">
-                            <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+                            <h2 className="text-lg font-semibold text-primary">
                                 Answer Options
                             </h2>
 
@@ -179,10 +179,10 @@ export default function AddQuestionPage() {
                                             type="button"
                                             onClick={() => setFormData({ ...formData, solution: option.key })}
                                             className={cn(
-                                                'w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm transition-all flex-shrink-0',
+                                                'w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm transition-all shrink-0',
                                                 formData.solution === option.key
                                                     ? 'bg-green-500 text-white'
-                                                    : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:bg-[var(--bg-card)]'
+                                                    : 'bg-elevated text-secondary hover:bg-card'
                                             )}
                                             title={formData.solution === option.key ? 'Correct answer' : 'Mark as correct'}
                                         >
@@ -198,7 +198,7 @@ export default function AddQuestionPage() {
                                 ))}
                             </div>
 
-                            <p className="text-sm text-[var(--text-muted)]">
+                            <p className="text-sm text-muted">
                                 Click on the letter to mark the correct answer. Currently selected: <strong className="text-green-400">{formData.solution}</strong>
                             </p>
                         </CardContent>
@@ -206,7 +206,7 @@ export default function AddQuestionPage() {
                 ) : (
                     <Card>
                         <CardContent className="p-6 space-y-5">
-                            <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+                            <h2 className="text-lg font-semibold text-primary">
                                 Solution Code
                             </h2>
 

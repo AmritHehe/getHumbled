@@ -71,10 +71,10 @@ export default function ContestsPage() {
         <div className="container py-8">
             {/* Header */}
             <div className="mb-8">
-                <h1 className="text-2xl font-medium text-[var(--text-primary)] mb-2">
+                <h1 className="text-2xl font-medium text-primary mb-2">
                     Contests
                 </h1>
-                <p className="text-[var(--text-secondary)]">
+                <p className="text-secondary">
                     Explore and join coding competitions
                 </p>
             </div>
@@ -82,7 +82,7 @@ export default function ContestsPage() {
             {/* Filters & Search */}
             <div className="flex flex-col md:flex-row gap-4 mb-8">
                 {/* Filter Tabs */}
-                <div className="flex items-center gap-1 p-1 bg-[var(--bg-secondary)] rounded-lg">
+                <div className="flex items-center gap-1 p-1 bg-surface-alt rounded-lg">
                     {filters.map((filter) => (
                         <button
                             key={filter.value}
@@ -90,8 +90,8 @@ export default function ContestsPage() {
                             className={cn(
                                 'px-4 py-2 text-sm font-medium rounded-md transition-all',
                                 activeFilter === filter.value
-                                    ? 'bg-[var(--bg-card)] text-[var(--text-primary)]'
-                                    : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
+                                    ? 'bg-card text-primary'
+                                    : 'text-muted hover:text-primary'
                             )}
                         >
                             {filter.label}
@@ -129,7 +129,7 @@ export default function ContestsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {sortedContests.map((contest) => (
                         <Link key={contest.id} href={`/contests/${contest.id}`}>
-                            <div className="card p-5 hover:border-[var(--border-hover)] transition-colors">
+                            <div className="card p-5 hover:border-hover transition-colors">
                                 <div className="flex items-center gap-2 mb-3">
                                     {/* Show Practice badge for practice mode contests */}
                                     {(contest as any).mode === 'practice' ? (
@@ -150,18 +150,18 @@ export default function ContestsPage() {
                                                 </span>
                                             )}
                                             {contest.status === 'CLOSED' && (
-                                                <span className="text-xs px-2 py-1 rounded bg-[var(--bg-elevated)] text-[var(--text-muted)]">
+                                                <span className="text-xs px-2 py-1 rounded bg-elevated text-muted">
                                                     Ended
                                                 </span>
                                             )}
                                         </>
                                     )}
-                                    <span className="text-xs px-2 py-1 rounded bg-[var(--bg-elevated)] text-[var(--text-muted)]">
+                                    <span className="text-xs px-2 py-1 rounded bg-elevated text-muted">
                                         {contest.type}
                                     </span>
                                 </div>
-                                <h3 className="font-medium mb-2 text-[var(--text-primary)]">{contest.title}</h3>
-                                <p className="text-sm text-[var(--text-muted)] line-clamp-2">
+                                <h3 className="font-medium mb-2 text-primary">{contest.title}</h3>
+                                <p className="text-sm text-muted line-clamp-2">
                                     {contest.discription}
                                 </p>
                             </div>
@@ -170,7 +170,7 @@ export default function ContestsPage() {
                 </div>
             ) : (
                 <div className="text-center py-16">
-                    <p className="text-[var(--text-muted)]">
+                    <p className="text-muted">
                         {searchQuery ? `No contests matching "${searchQuery}"` : 'No contests found'}
                     </p>
                 </div>

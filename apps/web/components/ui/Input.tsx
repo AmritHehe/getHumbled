@@ -17,7 +17,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
                 )}
                 <div className="relative">
                     {leftIcon && (
-                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none">
+                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted pointer-events-none">
                             {leftIcon}
                         </div>
                     )}
@@ -35,7 +35,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
                         {...props}
                     />
                     {rightIcon && (
-                        <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none">
+                        <div className="absolute right-4 top-1/2 -translate-y-1/2 text-muted pointer-events-none">
                             {rightIcon}
                         </div>
                     )}

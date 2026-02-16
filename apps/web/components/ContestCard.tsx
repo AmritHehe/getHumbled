@@ -37,15 +37,15 @@ export function ContestCard({ contest }: ContestCardProps) {
                 </div>
 
                 {/* Title & Description */}
-                <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2 group-hover:text-[var(--accent-primary)] transition-colors">
+                <h3 className="text-lg font-semibold text-primary mb-2 group-hover:text-accent-primary transition-colors">
                     {contest.title}
                 </h3>
-                <p className="text-sm text-[var(--text-secondary)] line-clamp-2 mb-4">
+                <p className="text-sm text-secondary line-clamp-2 mb-4">
                     {contest.discription}
                 </p>
 
                 {/* Meta Info */}
-                <div className="flex items-center gap-4 text-sm text-[var(--text-muted)] mb-4">
+                <div className="flex items-center gap-4 text-sm text-muted mb-4">
                     {contest.StartDate && (
                         <div className="flex items-center gap-1.5">
                             <Calendar className="w-4 h-4" />

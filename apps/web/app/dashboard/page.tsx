@@ -42,10 +42,10 @@ export default function DashboardPage() {
         <div className="container py-8">
             {/* Welcome Header */}
             <div className="mb-8">
-                <h1 className="text-2xl font-medium text-[var(--text-primary)] mb-2">
+                <h1 className="text-2xl font-medium text-primary mb-2">
                     Welcome back{user?.name ? `, ${user.name}` : ''}
                 </h1>
-                <p className="text-[var(--text-secondary)]">
+                <p className="text-secondary">
                     Here's your competitive coding journey at a glance.
                 </p>
             </div>
@@ -78,10 +78,10 @@ export default function DashboardPage() {
                 {/* Upcoming Contests */}
                 <div>
                     <div className="flex items-center justify-between mb-4">
-                        <h2 className="font-medium text-[var(--text-primary)]">
+                        <h2 className="font-medium text-primary">
                             Upcoming Contests
                         </h2>
-                        <Link href="/contests" className="text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)]">
+                        <Link href="/contests" className="text-sm text-muted hover:text-primary">
                             View All →
                         </Link>
                     </div>
@@ -97,15 +97,15 @@ export default function DashboardPage() {
                         ) : upcomingContests.length > 0 ? (
                             upcomingContests.map((contest) => (
                                 <Link key={contest.id} href={`/contests/${contest.id}`}>
-                                    <div className="card p-4 hover:border-[var(--border-hover)] transition-colors">
+                                    <div className="card p-4 hover:border-hover transition-colors">
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-9 h-9 rounded-lg bg-[var(--bg-elevated)] flex items-center justify-center">
-                                                    <Calendar className="w-4 h-4 text-[var(--text-muted)]" />
+                                                <div className="w-9 h-9 rounded-lg bg-elevated flex items-center justify-center">
+                                                    <Calendar className="w-4 h-4 text-muted" />
                                                 </div>
                                                 <div>
-                                                    <h3 className="font-medium text-[var(--text-primary)] text-sm">{contest.title}</h3>
-                                                    <p className="text-xs text-[var(--text-muted)]">{contest.type}</p>
+                                                    <h3 className="font-medium text-primary text-sm">{contest.title}</h3>
+                                                    <p className="text-xs text-muted">{contest.type}</p>
                                                 </div>
                                             </div>
                                             <Badge variant={contest.type.toLowerCase() as 'dsa' | 'dev'}>
@@ -117,7 +117,7 @@ export default function DashboardPage() {
                             ))
                         ) : (
                             <div className="card p-6 text-center">
-                                <p className="text-sm text-[var(--text-muted)]">No upcoming contests</p>
+                                <p className="text-sm text-muted">No upcoming contests</p>
                             </div>
                         )}
                     </div>
@@ -126,7 +126,7 @@ export default function DashboardPage() {
                 {/* Recent Activity */}
                 <div>
                     <div className="flex items-center justify-between mb-4">
-                        <h2 className="font-medium text-[var(--text-primary)]">
+                        <h2 className="font-medium text-primary">
                             Recent Contests
                         </h2>
                     </div>
@@ -139,22 +139,22 @@ export default function DashboardPage() {
                                 ))}
                             </div>
                         ) : recentContests.length > 0 ? (
-                            <div className="divide-y divide-[var(--border)]">
+                            <div className="divide-y divide-default">
                                 {recentContests.map((contest) => (
                                     <Link key={contest.id} href={`/contests/${contest.id}`}>
-                                        <div className="flex items-center justify-between p-4 hover:bg-[var(--bg-secondary)] transition-colors">
+                                        <div className="flex items-center justify-between p-4 hover:bg-surface-alt transition-colors">
                                             <div>
-                                                <h3 className="font-medium text-sm text-[var(--text-primary)]">{contest.title}</h3>
-                                                <p className="text-xs text-[var(--text-muted)]">{contest.type}</p>
+                                                <h3 className="font-medium text-sm text-primary">{contest.title}</h3>
+                                                <p className="text-xs text-muted">{contest.type}</p>
                                             </div>
-                                            <span className="text-xs text-[var(--text-muted)]">Completed</span>
+                                            <span className="text-xs text-muted">Completed</span>
                                         </div>
                                     </Link>
                                 ))}
                             </div>
                         ) : (
                             <div className="p-6 text-center">
-                                <p className="text-sm text-[var(--text-muted)]">No recent contests</p>
+                                <p className="text-sm text-muted">No recent contests</p>
                             </div>
                         )}
                     </div>
@@ -165,10 +165,10 @@ export default function DashboardPage() {
             <div className="mt-8 card p-6">
                 <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                     <div>
-                        <h3 className="font-medium text-[var(--text-primary)] mb-1">
+                        <h3 className="font-medium text-primary mb-1">
                             Ready for your next challenge?
                         </h3>
-                        <p className="text-sm text-[var(--text-muted)]">
+                        <p className="text-sm text-muted">
                             Browse available contests and start competing.
                         </p>
                     </div>

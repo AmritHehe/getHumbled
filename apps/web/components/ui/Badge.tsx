@@ -12,7 +12,7 @@ interface BadgeProps {
 
 export function Badge({ children, variant = 'default', showDot = false, className }: BadgeProps) {
     const variants: Record<BadgeVariant, string> = {
-        default: 'bg-[var(--bg-elevated)] text-[var(--text-secondary)]',
+        default: 'bg-elevated text-secondary',
         live: 'badge-live',
         upcoming: 'badge-upcoming',
         closed: 'badge-closed',

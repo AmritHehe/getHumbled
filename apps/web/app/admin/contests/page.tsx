@@ -45,10 +45,10 @@ export default function AdminContestsPage() {
             {/* Header */}
             <div className="flex items-center justify-between mb-8">
                 <div>
-                    <h1 className="text-2xl font-medium text-[var(--text-primary)] mb-1">
+                    <h1 className="text-2xl font-medium text-primary mb-1">
                         Contests
                     </h1>
-                    <p className="text-sm text-[var(--text-muted)]">
+                    <p className="text-sm text-muted">
                         Manage all contests
                     </p>
                 </div>
@@ -61,7 +61,7 @@ export default function AdminContestsPage() {
 
             {/* Filters */}
             <div className="flex flex-col md:flex-row gap-4 mb-6">
-                <div className="flex items-center gap-1 p-1 bg-[var(--bg-secondary)] rounded-lg">
+                <div className="flex items-center gap-1 p-1 bg-surface-alt rounded-lg">
                     {statusFilters.map((filter) => (
                         <button
                             key={filter.value}
@@ -69,8 +69,8 @@ export default function AdminContestsPage() {
                             className={cn(
                                 'px-3 py-1.5 text-sm font-medium rounded-md transition-all',
                                 activeFilter === filter.value
-                                    ? 'bg-[var(--bg-card)] text-[var(--text-primary)]'
-                                    : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
+                                    ? 'bg-card text-primary'
+                                    : 'text-muted hover:text-primary'
                             )}
                         >
                             {filter.label}
@@ -100,29 +100,29 @@ export default function AdminContestsPage() {
                 ) : filteredContests.length > 0 ? (
                     <table className="w-full">
                         <thead>
-                            <tr className="border-b border-[var(--border)]">
-                                <th className="text-left text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider px-6 py-4">
+                            <tr className="border-b border-default">
+                                <th className="text-left text-xs font-medium text-muted uppercase tracking-wider px-6 py-4">
                                     Title
                                 </th>
-                                <th className="text-left text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider px-6 py-4">
+                                <th className="text-left text-xs font-medium text-muted uppercase tracking-wider px-6 py-4">
                                     Type
                                 </th>
-                                <th className="text-left text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider px-6 py-4">
+                                <th className="text-left text-xs font-medium text-muted uppercase tracking-wider px-6 py-4">
                                     Status
                                 </th>
-                                <th className="text-right text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider px-6 py-4">
+                                <th className="text-right text-xs font-medium text-muted uppercase tracking-wider px-6 py-4">
                                     Actions
                                 </th>
                             </tr>
                         </thead>
                         <tbody>
                             {filteredContests.map((contest) => (
-                                <tr key={contest.id} className="border-b border-[var(--border)] hover:bg-[var(--bg-secondary)] transition-colors">
+                                <tr key={contest.id} className="border-b border-default hover:bg-surface-alt transition-colors">
                                     <td className="px-6 py-4">
-                                        <span className="font-medium text-[var(--text-primary)]">{contest.title}</span>
+                                        <span className="font-medium text-primary">{contest.title}</span>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className="text-sm text-[var(--text-muted)]">{contest.type}</span>
+                                        <span className="text-sm text-muted">{contest.type}</span>
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-2">
@@ -130,7 +130,7 @@ export default function AdminContestsPage() {
                                                 'text-xs px-2 py-1 rounded',
                                                 contest.status === 'LIVE' && 'bg-green-500/10 text-green-600',
                                                 contest.status === 'UPCOMING' && 'bg-amber-500/10 text-amber-600',
-                                                contest.status === 'CLOSED' && 'bg-[var(--bg-elevated)] text-[var(--text-muted)]'
+                                                contest.status === 'CLOSED' && 'bg-elevated text-muted'
                                             )}>
                                                 {contest.status}
                                             </span>
@@ -159,7 +159,7 @@ export default function AdminContestsPage() {
                     </table>
                 ) : (
                     <div className="py-12 text-center">
-                        <p className="text-[var(--text-muted)]">No contests found</p>
+                        <p className="text-muted">No contests found</p>
                     </div>
                 )}
             </div>

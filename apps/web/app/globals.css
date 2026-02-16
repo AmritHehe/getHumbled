@@ -1,11 +1,10 @@
 @import "@repo/tailwind-config";
 
 /* ============================================
-   SKILLUP MINIMAL DESIGN SYSTEM
+   SKILLUP DESIGN SYSTEM
    ============================================ */
 
 :root {
-  /* Light Mode - Clean & Minimal */
   --bg-primary: #ffffff;
   --bg-secondary: #fafafa;
   --bg-card: #ffffff;
@@ -13,6 +12,7 @@
 
   --accent: #171717;
   --accent-subtle: #525252;
+  --accent-primary: #171717;
 
   --success: #16a34a;
   --warning: #ca8a04;
@@ -25,6 +25,8 @@
 
   --border: #e5e5e5;
   --border-hover: #d4d4d4;
+
+  --glass: rgba(0, 0, 0, 0.03);
 }
 
 [data-theme="dark"] {
@@ -35,6 +37,7 @@
 
   --accent: #fafafa;
   --accent-subtle: #a3a3a3;
+  --accent-primary: #fafafa;
 
   --success: #22c55e;
   --warning: #eab308;
@@ -47,9 +50,49 @@
 
   --border: #262626;
   --border-hover: #404040;
+
+  --glass: rgba(255, 255, 255, 0.03);
 }
 
-/* Global Styles */
+/* ============================================
+   TAILWIND v4 THEME TOKENS
+   ============================================ */
+
+@theme {
+  /* Text colors → text-primary, text-secondary, text-muted */
+  --color-primary: var(--text-primary);
+  --color-secondary: var(--text-secondary);
+  --color-muted: var(--text-muted);
+
+  /* Backgrounds → bg-surface, bg-surface-alt, bg-card, bg-elevated */
+  --color-surface: var(--bg-primary);
+  --color-surface-alt: var(--bg-secondary);
+  --color-card: var(--bg-card);
+  --color-elevated: var(--bg-elevated);
+
+  /* Accent → bg-accent, text-accent, etc. */
+  --color-accent: var(--accent);
+  --color-accent-subtle: var(--accent-subtle);
+  --color-accent-primary: var(--accent-primary);
+
+  /* Status */
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-live: var(--live);
+
+  /* Borders → border-default, border-hover */
+  --color-default: var(--border);
+  --color-hover: var(--border-hover);
+
+  /* Glass */
+  --color-glass: var(--glass);
+}
+
+/* ============================================
+   GLOBAL STYLES
+   ============================================ */
+
 * {
   box-sizing: border-box;
 }
@@ -185,10 +228,6 @@ a {
   animation: fadeIn 0.4s ease-out;
 }
 
-.animate-slideUp {
-  animation: slideUp 0.5s ease-out;
-}
-
 .animate-slideDown {
   animation: slideDown 0.3s ease-out;
 }
@@ -198,7 +237,7 @@ a {
 }
 
 /* ============================================
-   CARDS
+   COMPONENTS
    ============================================ */
 
 .card {
@@ -211,68 +250,6 @@ a {
 .card:hover {
   border-color: var(--border-hover);
 }
-
-.glass-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-}
-
-/* ============================================
-   BUTTONS
-   ============================================ */
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 10px 20px;
-  font-size: 14px;
-  font-weight: 500;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.btn-primary {
-  background: var(--accent);
-  color: var(--bg-primary);
-}
-
-.btn-primary:hover:not(:disabled) {
-  opacity: 0.9;
-}
-
-.btn-secondary {
-  background: transparent;
-  color: var(--text-primary);
-  border: 1px solid var(--border);
-}
-
-.btn-secondary:hover:not(:disabled) {
-  border-color: var(--border-hover);
-  background: var(--bg-elevated);
-}
-
-.btn-ghost {
-  background: transparent;
-  color: var(--text-secondary);
-}
-
-.btn-ghost:hover:not(:disabled) {
-  color: var(--text-primary);
-}
-
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* ============================================
-   INPUTS
-   ============================================ */
 
 .input-field {
   width: 100%;
@@ -380,10 +357,6 @@ a {
 .section {
   padding: 80px 0;
 }
-
-/* ============================================
-   RESPONSIVE
-   ============================================ */
 
 @media (max-width: 768px) {
   .container {

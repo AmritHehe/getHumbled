@@ -39,18 +39,18 @@ export function LeaderboardTable({ entries, currentUserId, showTrend = true }: L
             <div className="overflow-x-auto">
                 <table className="w-full">
                     <thead>
-                        <tr className="border-b border-[var(--border)]">
-                            <th className="text-left text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider px-6 py-4">
+                        <tr className="border-b border-default">
+                            <th className="text-left text-xs font-medium text-muted uppercase tracking-wider px-6 py-4">
                                 Rank
                             </th>
-                            <th className="text-left text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider px-6 py-4">
+                            <th className="text-left text-xs font-medium text-muted uppercase tracking-wider px-6 py-4">
                                 Player
                             </th>
-                            <th className="text-right text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider px-6 py-4">
+                            <th className="text-right text-xs font-medium text-muted uppercase tracking-wider px-6 py-4">
                                 Points
                             </th>
                             {showTrend && (
-                                <th className="text-right text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider px-6 py-4">
+                                <th className="text-right text-xs font-medium text-muted uppercase tracking-wider px-6 py-4">
                                     Trend
                                 </th>
                             )}
@@ -65,16 +65,16 @@ export function LeaderboardTable({ entries, currentUserId, showTrend = true }: L
                                 <tr
                                     key={entry.userId}
                                     className={cn(
-                                        'border-b border-[var(--border)] transition-colors',
+                                        'border-b border-default transition-colors',
                                         isCurrentUser
-                                            ? 'bg-[var(--accent-primary)]/5'
-                                            : 'hover:bg-[var(--glass)]'
+                                            ? 'bg-accent-primary/5'
+                                            : 'hover:bg-glass'
                                     )}
                                 >
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-2">
                                             {getMedalIcon(entry.rank) || (
-                                                <span className="w-5 text-center font-mono text-[var(--text-muted)]">
+                                                <span className="w-5 text-center font-mono text-muted">
                                                     {entry.rank}
                                                 </span>
                                             )}
@@ -82,13 +82,13 @@ export function LeaderboardTable({ entries, currentUserId, showTrend = true }: L
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center text-white font-medium text-sm">
+                                            <div className="w-8 h-8 rounded-full bg-linear-to-br from-indigo-500 to-violet-500 flex items-center justify-center text-white font-medium text-sm">
                                                 {entry.userName.charAt(0).toUpperCase()}
                                             </div>
                                             <div>
                                                 <p className={cn(
                                                     'font-medium',
-                                                    isCurrentUser ? 'text-[var(--accent-primary)]' : 'text-[var(--text-primary)]'
+                                                    isCurrentUser ? 'text-accent-primary' : 'text-primary'
                                                 )}>
                                                     {entry.userName}
                                                     {isCurrentUser && <span className="ml-2 text-xs">(You)</span>}
@@ -97,10 +97,10 @@ export function LeaderboardTable({ entries, currentUserId, showTrend = true }: L
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 text-right">
-                                        <span className="font-mono font-semibold text-[var(--text-primary)]">
+                                        <span className="font-mono font-semibold text-primary">
                                             {entry.totalPoints.toLocaleString()}
                                         </span>
-                                        <span className="text-[var(--text-muted)] ml-1">pts</span>
+                                        <span className="text-muted ml-1">pts</span>
                                     </td>
                                     {showTrend && (
                                         <td className="px-6 py-4 text-right">
@@ -109,7 +109,7 @@ export function LeaderboardTable({ entries, currentUserId, showTrend = true }: L
                                                     'inline-flex items-center gap-1',
                                                     rankChange.direction === 'up' && 'text-green-400',
                                                     rankChange.direction === 'down' && 'text-red-400',
-                                                    rankChange.direction === 'same' && 'text-[var(--text-muted)]'
+                                                    rankChange.direction === 'same' && 'text-muted'
                                                 )}>
                                                     {rankChange.direction === 'up' && <TrendingUp className="w-4 h-4" />}
                                                     {rankChange.direction === 'down' && <TrendingDown className="w-4 h-4" />}

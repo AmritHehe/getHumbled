@@ -34,10 +34,10 @@ export default function AdminDashboardPage() {
             {/* Header */}
             <div className="flex items-center justify-between mb-8">
                 <div>
-                    <h1 className="text-2xl font-medium text-[var(--text-primary)] mb-1">
+                    <h1 className="text-2xl font-medium text-primary mb-1">
                         Dashboard
                     </h1>
-                    <p className="text-sm text-[var(--text-muted)]">
+                    <p className="text-sm text-muted">
                         Overview of your platform
                     </p>
                 </div>
@@ -74,9 +74,9 @@ export default function AdminDashboardPage() {
 
             {/* Recent Contests */}
             <div className="card overflow-hidden">
-                <div className="flex items-center justify-between p-4 border-b border-[var(--border)]">
-                    <h2 className="font-medium text-[var(--text-primary)]">Recent Contests</h2>
-                    <Link href="/admin/contests" className="text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)]">
+                <div className="flex items-center justify-between p-4 border-b border-default">
+                    <h2 className="font-medium text-primary">Recent Contests</h2>
+                    <Link href="/admin/contests" className="text-sm text-muted hover:text-primary">
                         View All →
                     </Link>
                 </div>
@@ -90,38 +90,38 @@ export default function AdminDashboardPage() {
                 ) : contests.length > 0 ? (
                     <table className="w-full">
                         <thead>
-                            <tr className="border-b border-[var(--border)]">
-                                <th className="text-left text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider px-4 py-3">
+                            <tr className="border-b border-default">
+                                <th className="text-left text-xs font-medium text-muted uppercase tracking-wider px-4 py-3">
                                     Title
                                 </th>
-                                <th className="text-left text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider px-4 py-3">
+                                <th className="text-left text-xs font-medium text-muted uppercase tracking-wider px-4 py-3">
                                     Type
                                 </th>
-                                <th className="text-left text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider px-4 py-3">
+                                <th className="text-left text-xs font-medium text-muted uppercase tracking-wider px-4 py-3">
                                     Status
                                 </th>
-                                <th className="text-right text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider px-4 py-3">
+                                <th className="text-right text-xs font-medium text-muted uppercase tracking-wider px-4 py-3">
                                     Action
                                 </th>
                             </tr>
                         </thead>
                         <tbody>
                             {contests.slice(0, 5).map((contest) => (
-                                <tr key={contest.id} className="border-b border-[var(--border)] hover:bg-[var(--bg-secondary)]">
-                                    <td className="px-4 py-3 text-sm text-[var(--text-primary)]">{contest.title}</td>
-                                    <td className="px-4 py-3 text-sm text-[var(--text-muted)]">{contest.type}</td>
+                                <tr key={contest.id} className="border-b border-default hover:bg-surface-alt">
+                                    <td className="px-4 py-3 text-sm text-primary">{contest.title}</td>
+                                    <td className="px-4 py-3 text-sm text-muted">{contest.type}</td>
                                     <td className="px-4 py-3">
                                         <span className={cn(
                                             'text-xs px-2 py-1 rounded',
                                             contest.status === 'LIVE' && 'bg-green-500/10 text-green-600',
                                             contest.status === 'UPCOMING' && 'bg-amber-500/10 text-amber-600',
-                                            contest.status === 'CLOSED' && 'bg-[var(--bg-elevated)] text-[var(--text-muted)]'
+                                            contest.status === 'CLOSED' && 'bg-elevated text-muted'
                                         )}>
                                             {contest.status}
                                         </span>
                                     </td>
                                     <td className="px-4 py-3 text-right">
-                                        <Link href={`/admin/contests/${contest.id}`} className="text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)]">
+                                        <Link href={`/admin/contests/${contest.id}`} className="text-sm text-muted hover:text-primary">
                                             View
                                         </Link>
                                     </td>
@@ -131,7 +131,7 @@ export default function AdminDashboardPage() {
                     </table>
                 ) : (
                     <div className="p-8 text-center">
-                        <p className="text-sm text-[var(--text-muted)]">No contests yet</p>
+                        <p className="text-sm text-muted">No contests yet</p>
                         <Link href="/admin/contests/new">
                             <Button variant="secondary" size="sm" className="mt-4">
                                 Create First Contest
@@ -144,24 +144,24 @@ export default function AdminDashboardPage() {
             {/* Quick Actions */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
                 <Link href="/admin/contests/new">
-                    <div className="card p-4 hover:border-[var(--border-hover)] transition-colors">
-                        <Plus className="w-5 h-5 text-[var(--text-muted)] mb-2" />
-                        <h3 className="font-medium text-sm text-[var(--text-primary)]">Create Contest</h3>
-                        <p className="text-xs text-[var(--text-muted)]">Add a new competition</p>
+                    <div className="card p-4 hover:border-hover transition-colors">
+                        <Plus className="w-5 h-5 text-muted mb-2" />
+                        <h3 className="font-medium text-sm text-primary">Create Contest</h3>
+                        <p className="text-xs text-muted">Add a new competition</p>
                     </div>
                 </Link>
                 <Link href="/admin/contests">
-                    <div className="card p-4 hover:border-[var(--border-hover)] transition-colors">
-                        <Trophy className="w-5 h-5 text-[var(--text-muted)] mb-2" />
-                        <h3 className="font-medium text-sm text-[var(--text-primary)]">Manage Contests</h3>
-                        <p className="text-xs text-[var(--text-muted)]">View and edit contests</p>
+                    <div className="card p-4 hover:border-hover transition-colors">
+                        <Trophy className="w-5 h-5 text-muted mb-2" />
+                        <h3 className="font-medium text-sm text-primary">Manage Contests</h3>
+                        <p className="text-xs text-muted">View and edit contests</p>
                     </div>
                 </Link>
                 <Link href="/admin/questions">
-                    <div className="card p-4 hover:border-[var(--border-hover)] transition-colors">
-                        <FileText className="w-5 h-5 text-[var(--text-muted)] mb-2" />
-                        <h3 className="font-medium text-sm text-[var(--text-primary)]">Questions</h3>
-                        <p className="text-xs text-[var(--text-muted)]">Manage question bank</p>
+                    <div className="card p-4 hover:border-hover transition-colors">
+                        <FileText className="w-5 h-5 text-muted mb-2" />
+                        <h3 className="font-medium text-sm text-primary">Questions</h3>
+                        <p className="text-xs text-muted">Manage question bank</p>
                     </div>
                 </Link>
             </div>

@@ -38,10 +38,10 @@ export default function SignInPage() {
         <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center py-12 px-4">
             <div className="w-full max-w-sm">
                 <div className="text-center mb-8">
-                    <h1 className="text-2xl font-medium text-[var(--text-primary)] mb-2">
+                    <h1 className="text-2xl font-medium text-primary mb-2">
                         Welcome back
                     </h1>
-                    <p className="text-sm text-[var(--text-muted)]">
+                    <p className="text-sm text-muted">
                         Sign in to continue
                     </p>
                 </div>
@@ -77,9 +77,9 @@ export default function SignInPage() {
                     </Button>
                 </form>
 
-                <p className="mt-6 text-center text-sm text-[var(--text-muted)]">
+                <p className="mt-6 text-center text-sm text-muted">
                     Don't have an account?{' '}
-                    <Link href="/auth/signup" className="text-[var(--text-primary)] hover:underline">
+                    <Link href="/auth/signup" className="text-primary hover:underline">
                         Sign up
                     </Link>
                 </p>

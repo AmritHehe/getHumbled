@@ -16,7 +16,7 @@ export function Card({ children, className }: CardProps) {
 
 export function CardHeader({ children, className }: CardProps) {
     return (
-        <div className={cn('p-5 border-b border-[var(--border)]', className)}>
+        <div className={cn('p-5 border-b border-default', className)}>
             {children}
         </div>
     );
@@ -32,7 +32,7 @@ export function CardContent({ children, className }: CardProps) {
 
 export function CardFooter({ children, className }: CardProps) {
     return (
-        <div className={cn('p-5 border-t border-[var(--border)]', className)}>
+        <div className={cn('p-5 border-t border-default', className)}>
             {children}
         </div>
     );

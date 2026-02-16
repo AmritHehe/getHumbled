@@ -24,7 +24,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             {/* Sidebar */}
             <aside
                 className={cn(
-                    'sticky top-16 h-[calc(100vh-4rem)] bg-[var(--bg-secondary)] border-r border-[var(--border)] transition-all duration-300 flex flex-col',
+                    'sticky top-16 h-[calc(100vh-4rem)] bg-surface-alt border-r border-default transition-all duration-300 flex flex-col',
                     collapsed ? 'w-16' : 'w-64'
                 )}
             >
@@ -41,12 +41,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                 className={cn(
                                     'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors',
                                     isActive
-                                        ? 'bg-[var(--accent-primary)]/10 text-[var(--accent-primary)]'
-                                        : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--glass)]'
+                                        ? 'bg-accent-primary/10 text-accent-primary'
+                                        : 'text-secondary hover:text-primary hover:bg-glass'
                                 )}
                                 title={collapsed ? link.label : undefined}
                             >
-                                <Icon className="w-5 h-5 flex-shrink-0" />
+                                <Icon className="w-5 h-5 shrink-0" />
                                 {!collapsed && <span className="font-medium">{link.label}</span>}
                             </Link>
                         );
@@ -54,10 +54,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </nav>
 
                 {/* Collapse Button */}
-                <div className="p-4 border-t border-[var(--border)]">
+                <div className="p-4 border-t border-default">
                     <button
                         onClick={() => setCollapsed(!collapsed)}
-                        className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--glass)] transition-colors"
+                        className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-secondary hover:text-primary hover:bg-glass transition-colors"
                     >
                         {collapsed ? (
                             <ChevronRight className="w-5 h-5" />
@@ -72,7 +72,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 bg-[var(--bg-primary)]">
+            <main className="flex-1 bg-surface">
                 {children}
             </main>
         </div>

@@ -59,7 +59,7 @@ export function Timer({ startTime, totalMinutes, initialSeconds, onTimeUp, class
                     ? 'bg-red-500/20 text-red-400 animate-pulse'
                     : isLow
                         ? 'bg-amber-500/20 text-amber-400'
-                        : 'bg-[var(--bg-elevated)] text-[var(--text-primary)]',
+                        : 'bg-elevated text-primary',
                 className
             )}
         >

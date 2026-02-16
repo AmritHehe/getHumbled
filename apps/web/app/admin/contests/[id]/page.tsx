@@ -110,7 +110,7 @@ export default function AdminContestDetailPage() {
             {/* Back Link */}
             <Link
                 href="/admin/contests"
-                className="inline-flex items-center gap-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] mb-8 transition-colors"
+                className="inline-flex items-center gap-2 text-secondary hover:text-primary mb-8 transition-colors"
             >
                 <ArrowLeft className="w-4 h-4" />
                 Back to Contests
@@ -120,14 +120,14 @@ export default function AdminContestDetailPage() {
             <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-8">
                 <div>
                     <div className="flex items-center gap-3 mb-2">
-                        <h1 className="text-3xl font-bold text-[var(--text-primary)]">
+                        <h1 className="text-3xl font-bold text-primary">
                             {contest.title}
                         </h1>
                         <Badge variant={contest.status.toLowerCase() as 'live' | 'upcoming' | 'closed'} showDot={contest.status === 'LIVE'}>
                             {contest.status}
                         </Badge>
                     </div>
-                    <p className="text-[var(--text-secondary)]">{contest.discription}</p>
+                    <p className="text-secondary">{contest.discription}</p>
                 </div>
                 <div className="flex items-center gap-3">
                     {/* Finalize Leaderboard button for real contests */}
@@ -164,8 +164,8 @@ export default function AdminContestDetailPage() {
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-8">
                 <Card>
                     <CardContent className="p-4 text-center">
-                        <p className="text-2xl font-bold text-[var(--text-primary)]">{questions.length}</p>
-                        <p className="text-sm text-[var(--text-muted)]">Total Questions</p>
+                        <p className="text-2xl font-bold text-primary">{questions.length}</p>
+                        <p className="text-sm text-muted">Total Questions</p>
                     </CardContent>
                 </Card>
                 <Card>
@@ -181,7 +181,7 @@ export default function AdminContestDetailPage() {
             <Card>
                 <CardContent className="p-6">
                     <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-xl font-semibold text-[var(--text-primary)]">
+                        <h2 className="text-xl font-semibold text-primary">
                             Questions
                         </h2>
                     </div>
@@ -190,20 +190,20 @@ export default function AdminContestDetailPage() {
                         {questions.map((question: any) => (
                             <div
                                 key={question.id}
-                                className="flex items-center justify-between p-4 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border)] hover:border-[var(--border-hover)] transition-colors"
+                                className="flex items-center justify-between p-4 rounded-xl bg-surface-alt border border-default hover:border-hover transition-colors"
                             >
                                 <div className="flex items-center gap-4 flex-1 min-w-0 mr-4">
-                                    <div className="w-10 h-10 shrink-0 rounded-lg bg-[var(--accent-primary)]/10 flex items-center justify-center text-[var(--accent-primary)] font-bold">
+                                    <div className="w-10 h-10 shrink-0 rounded-lg bg-accent-primary/10 flex items-center justify-center text-accent-primary font-bold">
                                         {question.displaySrNo}
                                     </div>
                                     <div className="min-w-0">
-                                        <p className="font-medium text-[var(--text-primary)] truncate">{question.question?.split('\n')[0] || 'No question text'}</p>
+                                        <p className="font-medium text-primary truncate">{question.question?.split('\n')[0] || 'No question text'}</p>
                                         <div className="flex items-center gap-2 mt-1">
                                             <Badge variant="default" className="text-xs shrink-0">
                                                 <FileQuestion className="w-3 h-3 mr-1" />
                                                 {question.type}
                                             </Badge>
-                                            {question.points && <span className="text-sm text-[var(--text-muted)] shrink-0">{question.points} pts</span>}
+                                            {question.points && <span className="text-sm text-muted shrink-0">{question.points} pts</span>}
                                         </div>
                                     </div>
                                 </div>
@@ -211,7 +211,7 @@ export default function AdminContestDetailPage() {
                                     <Button
                                         variant="ghost"
                                         size="sm"
-                                        className="group p-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] min-w-[60px]"
+                                        className="group p-2 text-muted hover:text-primary min-w-[60px]"
                                         onClick={() => toast('Coming Soon!', { icon: '🚧' })}
                                     >
                                         <Edit className="w-4 h-4 group-hover:hidden" />
@@ -223,8 +223,8 @@ export default function AdminContestDetailPage() {
 
                         {questions.length === 0 && (
                             <div className="py-12 text-center">
-                                <FileQuestion className="w-12 h-12 text-[var(--text-muted)] mx-auto mb-4" />
-                                <p className="text-[var(--text-secondary)] mb-4">No questions added yet</p>
+                                <FileQuestion className="w-12 h-12 text-muted mx-auto mb-4" />
+                                <p className="text-secondary mb-4">No questions added yet</p>
                                 <Link href={`/admin/contests/${params.id}/questions/new`}>
                                     <Button variant="primary" leftIcon={<Plus className="w-4 h-4" />}>
                                         Add First Question

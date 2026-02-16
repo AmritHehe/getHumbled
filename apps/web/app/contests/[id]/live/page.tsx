@@ -370,7 +370,7 @@ export default function LiveContestPage() {
     if (isLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
-                <div className="flex items-center gap-3 text-[var(--text-muted)]">
+                <div className="flex items-center gap-3 text-muted">
                     <Loader2 className="w-5 h-5 animate-spin" />
                     Loading contest...
                 </div>
@@ -389,36 +389,36 @@ export default function LiveContestPage() {
 
     if (isCompleted) {
         return (
-            <div className="min-h-screen bg-[var(--bg-secondary)] flex flex-col items-center justify-center p-8">
-                <div className="max-w-md w-full bg-[var(--bg-card)] rounded-2xl border border-[var(--border)] p-8 text-center space-y-6 shadow-xl">
+            <div className="min-h-screen bg-surface-alt flex flex-col items-center justify-center p-8">
+                <div className="max-w-md w-full bg-card rounded-2xl border border-default p-8 text-center space-y-6 shadow-xl">
                     <div className="w-20 h-20 bg-green-500/10 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
                         <CheckCircle className="w-10 h-10" />
                     </div>
 
                     <div>
-                        <h1 className="text-2xl font-bold text-[var(--text-primary)] mb-2">Contest Completed!</h1>
-                        <p className="text-[var(--text-secondary)]">Thanks for giving the test.</p>
+                        <h1 className="text-2xl font-bold text-primary mb-2">Contest Completed!</h1>
+                        <p className="text-secondary">Thanks for giving the test.</p>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4 py-4 border-t border-b border-[var(--border)]">
+                    <div className="grid grid-cols-2 gap-4 py-4 border-t border-b border-default">
                         <div>
-                            <p className="text-sm text-[var(--text-muted)] mb-1">Time Taken</p>
-                            <p className="text-xl font-mono font-semibold text-[var(--text-primary)]">{formatTime(timeTaken)}</p>
+                            <p className="text-sm text-muted mb-1">Time Taken</p>
+                            <p className="text-xl font-mono font-semibold text-primary">{formatTime(timeTaken)}</p>
                         </div>
                         <div>
-                            <p className="text-sm text-[var(--text-muted)] mb-1">Questions</p>
-                            <p className="text-xl font-mono font-semibold text-[var(--text-primary)]">{answeredCount} / {totalQuestions}</p>
+                            <p className="text-sm text-muted mb-1">Questions</p>
+                            <p className="text-xl font-mono font-semibold text-primary">{answeredCount} / {totalQuestions}</p>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4 py-4 border-b border-[var(--border)]">
+                    <div className="grid grid-cols-2 gap-4 py-4 border-b border-default">
                         <div>
-                            <p className="text-sm text-[var(--text-muted)] mb-1">Your Score</p>
-                            <p className="text-2xl font-bold text-[var(--accent-primary)]">{userScore}</p>
+                            <p className="text-sm text-muted mb-1">Your Score</p>
+                            <p className="text-2xl font-bold text-accent-primary">{userScore}</p>
                         </div>
                         <div>
-                            <p className="text-sm text-[var(--text-muted)] mb-1">Your Rank</p>
-                            <p className="text-2xl font-bold text-[var(--text-primary)]">#{userRank || '-'}</p>
+                            <p className="text-sm text-muted mb-1">Your Rank</p>
+                            <p className="text-2xl font-bold text-primary">#{userRank || '-'}</p>
                         </div>
                     </div>
 
@@ -440,22 +440,22 @@ export default function LiveContestPage() {
     }
 
     return (
-        <div className="min-h-screen bg-[var(--bg-secondary)] flex flex-col">
+        <div className="min-h-screen bg-surface-alt flex flex-col">
             {/* Top Bar */}
-            <header className="bg-[var(--bg-primary)] border-b border-[var(--border)] sticky top-0 z-50">
+            <header className="bg-surface border-b border-default sticky top-0 z-50">
                 <div className="container max-w-7xl mx-auto px-6 py-4">
                     <div className="flex items-center justify-between">
                         {/* Left: Back + Title */}
                         <div className="flex items-center gap-3">
                             <Link
                                 href={`/contests/${contestId}`}
-                                className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors p-2 -ml-2 rounded-lg hover:bg-[var(--bg-secondary)]"
+                                className="text-muted hover:text-primary transition-colors p-2 -ml-2 rounded-lg hover:bg-surface-alt"
                             >
                                 <ArrowLeft className="w-5 h-5" />
                             </Link>
                             <div className="flex flex-col gap-0.5">
                                 <div className="flex items-center gap-3">
-                                    <h1 className="text-lg font-semibold text-[var(--text-primary)]">{contest.title}</h1>
+                                    <h1 className="text-lg font-semibold text-primary">{contest.title}</h1>
                                     <span className="text-xs bg-green-500/10 text-green-500 px-2.5 py-1 rounded-full font-medium flex items-center gap-1.5">
                                         <span className="live-dot" /> Live
                                     </span>
@@ -465,7 +465,7 @@ export default function LiveContestPage() {
                                         <WifiOff className="w-4 h-4 text-red-500" />
                                     )}
                                 </div>
-                                <p className="text-sm text-[var(--text-muted)]">
+                                <p className="text-sm text-muted">
                                     {answeredCount} of {totalQuestions} answered
                                 </p>
                             </div>
@@ -482,9 +482,9 @@ export default function LiveContestPage() {
             </header>
 
             {/* Progress Bar */}
-            <div className="h-1 bg-[var(--bg-elevated)]">
+            <div className="h-1 bg-elevated">
                 <div
-                    className="h-full bg-[var(--accent)] transition-all duration-500"
+                    className="h-full bg-accent transition-all duration-500"
                     style={{ width: `${totalQuestions > 0 ? (answeredCount / totalQuestions) * 100 : 0}%` }}
                 />
             </div>
@@ -521,12 +521,12 @@ export default function LiveContestPage() {
                                 </div>
 
                                 {/* Info notice */}
-                                <div className="text-center text-sm text-[var(--text-muted)] py-4 border-t border-[var(--border)]">
+                                <div className="text-center text-sm text-muted py-4 border-t border-default">
                                     Questions are delivered randomly. You cannot go back after submitting.
                                 </div>
                             </>
                         ) : (
-                            <div className="text-center py-20 text-[var(--text-muted)] bg-[var(--bg-card)] rounded-2xl border border-[var(--border)]">
+                            <div className="text-center py-20 text-muted bg-card rounded-2xl border border-default">
                                 <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
                                 <p>Waiting for question...</p>
                             </div>
@@ -535,17 +535,17 @@ export default function LiveContestPage() {
 
                     {/* Leaderboard Sidebar */}
                     <div className="lg:col-span-4 space-y-4">
-                        <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border)] p-4 shadow-sm">
+                        <div className="bg-card rounded-2xl border border-default p-4 shadow-sm">
                             <div className="flex items-center justify-between mb-3">
                                 <div className="flex items-center gap-2">
-                                    <h2 className="font-semibold text-[var(--text-primary)]">Leaderboard</h2>
+                                    <h2 className="font-semibold text-primary">Leaderboard</h2>
                                     <span className="text-xs bg-green-500/10 text-green-500 px-2 py-0.5 rounded-full font-medium">
                                         LIVE
                                     </span>
                                 </div>
                                 <Link
                                     href={`/contests/${contestId}/leaderboard`}
-                                    className="text-xs text-[var(--accent-primary)] hover:underline font-medium"
+                                    className="text-xs text-accent-primary hover:underline font-medium"
                                 >
                                     View All →
                                 </Link>
@@ -563,28 +563,28 @@ export default function LiveContestPage() {
                                             <div
                                                 key={entry.userId}
                                                 className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-all ${isMe
-                                                    ? 'bg-[var(--accent-primary)]/10 border border-[var(--accent-primary)]/20'
-                                                    : 'bg-[var(--bg-elevated)] hover:bg-[var(--bg-secondary)]'
+                                                    ? 'bg-accent-primary/10 border border-accent-primary/20'
+                                                    : 'bg-elevated hover:bg-surface-alt'
                                                     }`}
                                             >
                                                 {/* Rank Badge */}
                                                 <div className={`w-7 h-7 rounded-md flex items-center justify-center font-bold text-xs shrink-0 ${idx === 0 ? 'bg-yellow-500 text-black' :
                                                     idx === 1 ? 'bg-gray-400 text-black' :
                                                         idx === 2 ? 'bg-amber-600 text-white' :
-                                                            'bg-[var(--bg-card)] text-[var(--text-muted)] border border-[var(--border)]'
+                                                            'bg-card text-muted border border-default'
                                                     }`}>
                                                     {idx + 1}
                                                 </div>
 
                                                 {/* Name */}
-                                                <span className={`flex-1 text-sm font-medium truncate ${isMe ? 'text-[var(--accent-primary)]' : 'text-[var(--text-primary)]'
+                                                <span className={`flex-1 text-sm font-medium truncate ${isMe ? 'text-accent-primary' : 'text-primary'
                                                     }`}>
                                                     {displayName}
                                                     {isMe && <span className="text-[10px] ml-1 opacity-60">(You)</span>}
                                                 </span>
 
                                                 {/* Score */}
-                                                <span className="font-mono font-bold text-sm text-[var(--text-primary)] shrink-0">
+                                                <span className="font-mono font-bold text-sm text-primary shrink-0">
                                                     {entry.totalPoints}
                                                 </span>
                                             </div>
@@ -592,23 +592,23 @@ export default function LiveContestPage() {
                                     })}
                                 </div>
                             ) : (
-                                <div className="py-6 text-center text-[var(--text-muted)] text-sm bg-[var(--bg-elevated)] rounded-lg border border-dashed border-[var(--border)]">
+                                <div className="py-6 text-center text-muted text-sm bg-elevated rounded-lg border border-dashed border-default">
                                     {wsConnected ? 'Waiting for participants...' : 'Connecting...'}
                                 </div>
                             )}
                         </div>
 
                         {/* Your Stats */}
-                        <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border)] p-6 shadow-sm">
-                            <h3 className="text-sm font-medium text-[var(--text-muted)] mb-4">Your Performance</h3>
+                        <div className="bg-card rounded-2xl border border-default p-6 shadow-sm">
+                            <h3 className="text-sm font-medium text-muted mb-4">Your Performance</h3>
                             <div className="grid grid-cols-2 gap-4 text-center">
-                                <div className="p-3 rounded-xl bg-[var(--bg-elevated)]">
-                                    <p className="text-2xl font-bold text-[var(--text-primary)]">{userScore}</p>
-                                    <p className="text-xs text-[var(--text-muted)] mt-1">Score</p>
+                                <div className="p-3 rounded-xl bg-elevated">
+                                    <p className="text-2xl font-bold text-primary">{userScore}</p>
+                                    <p className="text-xs text-muted mt-1">Score</p>
                                 </div>
-                                <div className="p-3 rounded-xl bg-[var(--bg-elevated)]">
-                                    <p className="text-2xl font-bold text-[var(--accent-primary)]">#{userRank || '-'}</p>
-                                    <p className="text-xs text-[var(--text-muted)] mt-1">Rank</p>
+                                <div className="p-3 rounded-xl bg-elevated">
+                                    <p className="text-2xl font-bold text-accent-primary">#{userRank || '-'}</p>
+                                    <p className="text-xs text-muted mt-1">Rank</p>
                                 </div>
                             </div>
                         </div>

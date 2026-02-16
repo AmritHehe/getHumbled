@@ -91,7 +91,7 @@ export default function GeneratePracticeQuizPage() {
     if (isLoadingContest) {
         return (
             <div className="h-[calc(100vh-3.5rem)] flex items-center justify-center">
-                <div className="flex items-center gap-3 text-[var(--text-muted)]">
+                <div className="flex items-center gap-3 text-muted">
                     <Loader2 className="w-5 h-5 animate-spin" />
                     Loading...
                 </div>
@@ -111,12 +111,12 @@ export default function GeneratePracticeQuizPage() {
             />
 
             {/* Ambient glow */}
-            <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[var(--accent)]/5 blur-[120px] rounded-full pointer-events-none" />
+            <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-accent/5 blur-[120px] rounded-full pointer-events-none" />
 
             {/* Back button - top left */}
             <Link
                 href="/practice/new"
-                className="absolute top-6 left-6 inline-flex items-center gap-2 text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors group z-10"
+                className="absolute top-6 left-6 inline-flex items-center gap-2 text-sm text-muted hover:text-primary transition-colors group z-10"
             >
                 <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
                 Back
@@ -134,9 +134,9 @@ export default function GeneratePracticeQuizPage() {
                                     <CheckCircle className="w-12 h-12 text-green-500" />
                                 </div>
                             </div>
-                            <h1 className="text-3xl font-bold text-[var(--text-primary)] mb-3">Quiz Ready</h1>
-                            <p className="text-[var(--text-muted)] mb-6">Questions generated successfully</p>
-                            <div className="flex items-center gap-2 text-sm text-[var(--text-muted)]">
+                            <h1 className="text-3xl font-bold text-primary mb-3">Quiz Ready</h1>
+                            <p className="text-muted mb-6">Questions generated successfully</p>
+                            <div className="flex items-center gap-2 text-sm text-muted">
                                 <Loader2 className="w-4 h-4 animate-spin" />
                                 Starting quiz...
                             </div>
@@ -145,12 +145,12 @@ export default function GeneratePracticeQuizPage() {
                         /* Loading State */
                         <div className="flex flex-col items-center animate-fadeIn">
                             <div className="relative mb-8">
-                                <div className="absolute inset-0 bg-[var(--accent)]/10 blur-3xl rounded-full" />
-                                <div className="relative w-24 h-24 rounded-full bg-[var(--bg-card)] border border-[var(--border)] flex items-center justify-center">
-                                    <Loader2 className="w-10 h-10 text-[var(--text-muted)] animate-spin" />
+                                <div className="absolute inset-0 bg-accent/10 blur-3xl rounded-full" />
+                                <div className="relative w-24 h-24 rounded-full bg-card border border-default flex items-center justify-center">
+                                    <Loader2 className="w-10 h-10 text-muted animate-spin" />
                                 </div>
                             </div>
-                            <h1 className="text-2xl font-bold text-[var(--text-primary)] mb-4">{loadingMessages[loadingPhase]}</h1>
+                            <h1 className="text-2xl font-bold text-primary mb-4">{loadingMessages[loadingPhase]}</h1>
                             <div className="flex items-center gap-2 mb-6">
                                 {loadingMessages.map((_, idx) => (
                                     <div
@@ -158,24 +158,24 @@ export default function GeneratePracticeQuizPage() {
                                         className={cn(
                                             "w-2 h-2 rounded-full transition-all duration-300",
                                             idx === loadingPhase
-                                                ? "bg-[var(--accent)] scale-125"
+                                                ? "bg-accent scale-125"
                                                 : idx < loadingPhase
-                                                    ? "bg-[var(--accent)]/50"
-                                                    : "bg-[var(--border)]"
+                                                    ? "bg-accent/50"
+                                                    : "bg-border"
                                         )}
                                     />
                                 ))}
                             </div>
-                            <p className="text-sm text-[var(--text-muted)]">This usually takes 10-20 seconds</p>
+                            <p className="text-sm text-muted">This usually takes 10-20 seconds</p>
                         </div>
                     ) : (
                         /* Input State */
                         <>
                             {/* Header */}
                             <div className="text-center mb-10">
-                                <p className="text-sm text-[var(--text-muted)] mb-2">{contest?.title}</p>
-                                <h1 className="text-4xl font-bold text-[var(--text-primary)] mb-3">What do you want to practice?</h1>
-                                <p className="text-lg text-[var(--text-secondary)]">
+                                <p className="text-sm text-muted mb-2">{contest?.title}</p>
+                                <h1 className="text-4xl font-bold text-primary mb-3">What do you want to practice?</h1>
+                                <p className="text-lg text-secondary">
                                     Describe the topic and AI will generate ~10 questions
                                 </p>
                             </div>
@@ -186,7 +186,7 @@ export default function GeneratePracticeQuizPage() {
                                     value={prompt}
                                     onChange={(e) => setPrompt(e.target.value.slice(0, maxLength))}
                                     placeholder="e.g., JavaScript async/await and Promises for intermediate developers..."
-                                    className="w-full h-36 p-5 rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] resize-none focus:outline-none focus:border-[var(--accent)] transition-all text-lg leading-relaxed"
+                                    className="w-full h-36 p-5 rounded-2xl border border-default bg-card text-primary placeholder:text-muted resize-none focus:outline-none focus:border-accent transition-all text-lg leading-relaxed"
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter' && e.metaKey && prompt.trim()) {
                                             handleGenerate();
@@ -196,7 +196,7 @@ export default function GeneratePracticeQuizPage() {
 
                                 {/* Inline controls - bottom right */}
                                 <div className="absolute bottom-4 right-4 flex items-center gap-3">
-                                    <span className="text-xs text-[var(--text-muted)]">{prompt.length}/{maxLength}</span>
+                                    <span className="text-xs text-muted">{prompt.length}/{maxLength}</span>
                                     <button
                                         onClick={handleGenerate}
                                         disabled={!prompt.trim()}
@@ -204,7 +204,7 @@ export default function GeneratePracticeQuizPage() {
                                         onMouseLeave={() => setIsHovered(false)}
                                         className={cn(
                                             "relative overflow-hidden rounded-xl font-medium transition-all",
-                                            "bg-[var(--accent)] text-[var(--bg-primary)]",
+                                            "bg-accent text-surface",
                                             "disabled:opacity-30 disabled:cursor-not-allowed",
                                             "hover:opacity-90",
                                             "px-5 py-2.5 min-w-[150px]"
@@ -232,13 +232,13 @@ export default function GeneratePracticeQuizPage() {
 
                             {/* Examples */}
                             <div className="text-center">
-                                <p className="text-sm text-[var(--text-muted)] mb-4">Try an example</p>
+                                <p className="text-sm text-muted mb-4">Try an example</p>
                                 <div className="flex flex-wrap gap-3 justify-center">
                                     {examples.map(({ topic, level }) => (
                                         <button
                                             key={topic}
                                             onClick={() => setPrompt(`${topic} concepts for ${level.toLowerCase()} level`)}
-                                            className="px-4 py-2.5 rounded-full bg-[var(--bg-card)] border border-[var(--border)] text-sm text-[var(--text-secondary)] hover:border-[var(--border-hover)] hover:text-[var(--text-primary)] transition-all"
+                                            className="px-4 py-2.5 rounded-full bg-card border border-default text-sm text-secondary hover:border-hover hover:text-primary transition-all"
                                         >
                                             {topic} · {level}
                                         </button>

@@ -17,7 +17,7 @@ export function StatsCard({ title, value, icon, trend, className }: StatsCardPro
     return (
         <div className={cn('card p-6', className)}>
             <div className="flex items-start justify-between mb-4">
-                <div className="w-12 h-12 rounded-xl bg-[var(--accent-primary)]/10 flex items-center justify-center text-[var(--accent-primary)]">
+                <div className="w-12 h-12 rounded-xl bg-accent-primary/10 flex items-center justify-center text-accent-primary">
                     {icon}
                 </div>
                 {trend && (
@@ -36,10 +36,10 @@ export function StatsCard({ title, value, icon, trend, className }: StatsCardPro
                     </div>
                 )}
             </div>
-            <h3 className="text-3xl font-bold text-[var(--text-primary)] mb-1">
+            <h3 className="text-3xl font-bold text-primary mb-1">
                 {value}
             </h3>
-            <p className="text-sm text-[var(--text-muted)]">{title}</p>
+            <p className="text-sm text-muted">{title}</p>
         </div>
     );
 }

@@ -71,12 +71,12 @@ export default function AIQuizGeneratorPage() {
             />
 
             {/* Ambient glow */}
-            <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[var(--accent-primary)]/5 blur-[120px] rounded-full pointer-events-none" />
+            <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-accent-primary/5 blur-[120px] rounded-full pointer-events-none" />
 
             {/* Back button - top left */}
             <Link
                 href={`/admin/contests/${contestId}`}
-                className="absolute top-6 left-6 inline-flex items-center gap-2 text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors group z-10"
+                className="absolute top-6 left-6 inline-flex items-center gap-2 text-sm text-muted hover:text-primary transition-colors group z-10"
             >
                 <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
                 Back to Contest
@@ -93,9 +93,9 @@ export default function AIQuizGeneratorPage() {
                                     <CheckCircle className="w-14 h-14 text-green-400" />
                                 </div>
                             </div>
-                            <h1 className="text-3xl font-bold text-[var(--text-primary)] mb-3">Questions Generated</h1>
-                            <p className="text-[var(--text-muted)] mb-8">Your quiz is ready</p>
-                            <div className="flex items-center gap-2 text-sm text-[var(--text-muted)]">
+                            <h1 className="text-3xl font-bold text-primary mb-3">Questions Generated</h1>
+                            <p className="text-muted mb-8">Your quiz is ready</p>
+                            <div className="flex items-center gap-2 text-sm text-muted">
                                 <Loader2 className="w-4 h-4 animate-spin" />
                                 Redirecting to contest
                             </div>
@@ -107,25 +107,25 @@ export default function AIQuizGeneratorPage() {
                                 {[0, 1, 2].map((i) => (
                                     <div
                                         key={i}
-                                        className="w-4 h-4 rounded-full bg-[var(--accent-primary)] animate-pulse"
+                                        className="w-4 h-4 rounded-full bg-accent-primary animate-pulse"
                                         style={{ animationDelay: `${i * 200}ms` }}
                                     />
                                 ))}
                             </div>
-                            <h1 className="text-2xl font-bold text-[var(--text-primary)] mb-4">{loadingMessages[loadingPhase]}</h1>
+                            <h1 className="text-2xl font-bold text-primary mb-4">{loadingMessages[loadingPhase]}</h1>
                             <div className="flex items-center gap-2">
                                 {loadingMessages.map((_, idx) => (
-                                    <div key={idx} className={cn("w-2 h-2 rounded-full transition-all duration-300", idx === loadingPhase ? "bg-[var(--accent-primary)] scale-125" : idx < loadingPhase ? "bg-[var(--accent-primary)]/50" : "bg-[var(--border)]")} />
+                                    <div key={idx} className={cn("w-2 h-2 rounded-full transition-all duration-300", idx === loadingPhase ? "bg-accent-primary scale-125" : idx < loadingPhase ? "bg-accent-primary/50" : "bg-border")} />
                                 ))}
                             </div>
-                            <p className="text-sm text-[var(--text-muted)] mt-8">This usually takes 10-20 seconds</p>
+                            <p className="text-sm text-muted mt-8">This usually takes 10-20 seconds</p>
                         </div>
                     ) : (
                         <>
                             {/* Header */}
                             <div className="text-center mb-10">
-                                <h1 className="text-5xl font-bold text-[var(--text-primary)] mb-4">Create with AI</h1>
-                                <p className="text-xl text-[var(--text-secondary)]">
+                                <h1 className="text-5xl font-bold text-primary mb-4">Create with AI</h1>
+                                <p className="text-xl text-secondary">
                                     Describe your topic and AI will generate ~10 high-quality questions
                                 </p>
                             </div>
@@ -136,7 +136,7 @@ export default function AIQuizGeneratorPage() {
                                     value={prompt}
                                     onChange={(e) => setPrompt(e.target.value.slice(0, maxLength))}
                                     placeholder="e.g., JavaScript async/await and Promises for intermediate developers..."
-                                    className="w-full h-40 p-6 rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] resize-none focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]/30 focus:border-[var(--accent-primary)] transition-all text-lg leading-relaxed"
+                                    className="w-full h-40 p-6 rounded-2xl border border-default bg-card text-primary placeholder:text-muted resize-none focus:outline-none focus:ring-2 focus:ring-accent-primary/30 focus:border-accent-primary transition-all text-lg leading-relaxed"
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter' && e.metaKey && prompt.trim()) {
                                             handleGenerate();
@@ -146,7 +146,7 @@ export default function AIQuizGeneratorPage() {
                                 {/* Inline controls - bottom right */}
                                 <div className="absolute bottom-4 right-4 flex items-center gap-3">
                                     <span className={cn(
-                                        "text-xs text-[var(--text-muted)] transition-opacity duration-300",
+                                        "text-xs text-muted transition-opacity duration-300",
                                         isLoading && "opacity-0"
                                     )}>{prompt.length}/{maxLength}</span>
                                     <button
@@ -156,10 +156,10 @@ export default function AIQuizGeneratorPage() {
                                         onMouseLeave={() => setIsHovered(false)}
                                         className={cn(
                                             "relative overflow-hidden rounded-xl font-medium transition-all",
-                                            "bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary,var(--accent-primary))]",
-                                            "text-white shadow-lg shadow-[var(--accent-primary)]/25",
+                                            "bg-linear-to-r from-accent-primary to-accent-primary",
+                                            "text-white shadow-lg shadow-accent-primary/25",
                                             "disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none",
-                                            "hover:shadow-xl hover:shadow-[var(--accent-primary)]/30 hover:scale-[1.02]",
+                                            "hover:shadow-xl hover:shadow-accent-primary/30 hover:scale-[1.02]",
                                             "active:scale-[0.98]",
                                             // Morphing size
                                             isLoading
@@ -203,7 +203,7 @@ export default function AIQuizGeneratorPage() {
 
                                         {/* Shine effect */}
                                         <span className={cn(
-                                            "absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent",
+                                            "absolute inset-0 bg-linear-to-r from-transparent via-white/20 to-transparent",
                                             "-translate-x-full",
                                             "[transition:transform_600ms_ease-out]",
                                             isHovered && prompt.trim() && !isLoading && "translate-x-full"
@@ -214,13 +214,13 @@ export default function AIQuizGeneratorPage() {
 
                             {/* Examples */}
                             <div className="text-center">
-                                <p className="text-sm text-[var(--text-muted)] mb-4">Try an example</p>
+                                <p className="text-sm text-muted mb-4">Try an example</p>
                                 <div className="flex flex-wrap gap-3 justify-center">
                                     {examples.map(({ topic, level }) => (
                                         <button
                                             key={topic}
                                             onClick={() => setPrompt(`${topic} concepts for ${level.toLowerCase()} level students`)}
-                                            className="px-5 py-2.5 rounded-full bg-[var(--bg-card)] border border-[var(--border)] text-sm text-[var(--text-secondary)] hover:border-[var(--accent-primary)]/50 hover:text-[var(--text-primary)] transition-all"
+                                            className="px-5 py-2.5 rounded-full bg-card border border-default text-sm text-secondary hover:border-accent-primary/50 hover:text-primary transition-all"
                                         >
                                             {topic} · {level}
                                         </button>

@@ -60,7 +60,7 @@ export default function CreateContestPage() {
             {/* Back Link */}
             <Link
                 href="/admin/contests"
-                className="inline-flex items-center gap-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] mb-8 transition-colors text-sm"
+                className="inline-flex items-center gap-2 text-muted hover:text-primary mb-8 transition-colors text-sm"
             >
                 <ArrowLeft className="w-4 h-4" />
                 Back
@@ -68,10 +68,10 @@ export default function CreateContestPage() {
 
             {/* Header */}
             <div className="mb-8">
-                <h1 className="text-2xl font-medium text-[var(--text-primary)] mb-1">
+                <h1 className="text-2xl font-medium text-primary mb-1">
                     New Contest
                 </h1>
-                <p className="text-sm text-[var(--text-muted)]">
+                <p className="text-sm text-muted">
                     Create a new coding competition
                 </p>
             </div>
@@ -109,8 +109,8 @@ export default function CreateContestPage() {
                                     className={cn(
                                         'flex-1 py-3 px-4 rounded-lg border text-sm font-medium transition-all',
                                         formData.type === type
-                                            ? 'border-[var(--accent)] bg-[var(--accent)]/5'
-                                            : 'border-[var(--border)] hover:border-[var(--border-hover)]'
+                                            ? 'border-accent bg-accent/5'
+                                            : 'border-default hover:border-hover'
                                     )}
                                 >
                                     {type}
@@ -133,7 +133,7 @@ export default function CreateContestPage() {
                                             ? status === 'LIVE'
                                                 ? 'border-green-500 bg-green-500/10 text-green-600'
                                                 : 'border-amber-500 bg-amber-500/10 text-amber-600'
-                                            : 'border-[var(--border)] hover:border-[var(--border-hover)]'
+                                            : 'border-default hover:border-hover'
                                     )}
                                 >
                                     {status}
@@ -145,7 +145,7 @@ export default function CreateContestPage() {
 
                 {/* Scheduling Section */}
                 <div className="card p-6 space-y-4">
-                    <h3 className="text-sm font-medium text-[var(--text-primary)] flex items-center gap-2">
+                    <h3 className="text-sm font-medium text-primary flex items-center gap-2">
                         {formData.status === 'UPCOMING' ? (
                             <>
                                 <Calendar className="w-4 h-4" />
@@ -186,7 +186,7 @@ export default function CreateContestPage() {
                     ) : (
                         <div>
                             <label className="label">Quiz Duration (minutes)</label>
-                            <p className="text-xs text-[var(--text-muted)] mb-2">
+                            <p className="text-xs text-muted mb-2">
                                 How long participants have to complete the contest
                             </p>
                             <div className="flex gap-3">
@@ -198,8 +198,8 @@ export default function CreateContestPage() {
                                         className={cn(
                                             'px-4 py-2 rounded-lg border text-sm font-medium transition-all',
                                             formData.duration === mins
-                                                ? 'border-[var(--accent)] bg-[var(--accent)]/5 text-[var(--accent)]'
-                                                : 'border-[var(--border)] hover:border-[var(--border-hover)]'
+                                                ? 'border-accent bg-accent/5 text-accent'
+                                                : 'border-default hover:border-hover'
                                         )}
                                     >
                                         {mins}m
@@ -223,7 +223,7 @@ export default function CreateContestPage() {
                     {formData.status === 'UPCOMING' && (
                         <div>
                             <label className="label">Quiz Duration (minutes)</label>
-                            <p className="text-xs text-[var(--text-muted)] mb-2">
+                            <p className="text-xs text-muted mb-2">
                                 How long participants have to complete the contest once it goes live
                             </p>
                             <div className="flex gap-3 flex-wrap">
@@ -235,8 +235,8 @@ export default function CreateContestPage() {
                                         className={cn(
                                             'px-4 py-2 rounded-lg border text-sm font-medium transition-all',
                                             formData.duration === mins
-                                                ? 'border-[var(--accent)] bg-[var(--accent)]/5 text-[var(--accent)]'
-                                                : 'border-[var(--border)] hover:border-[var(--border-hover)]'
+                                                ? 'border-accent bg-accent/5 text-accent'
+                                                : 'border-default hover:border-hover'
                                         )}
                                     >
                                         {mins}m

@@ -34,17 +34,17 @@ export default function AdminSignInPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center py-12 px-4 bg-[var(--bg-secondary)]">
+        <div className="min-h-screen flex items-center justify-center py-12 px-4 bg-surface-alt">
             <div className="w-full max-w-sm">
                 <div className="card p-8">
                     <div className="text-center mb-8">
-                        <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-[var(--bg-elevated)] mb-4">
-                            <span className="text-lg font-bold text-[var(--text-primary)]">A</span>
+                        <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-elevated mb-4">
+                            <span className="text-lg font-bold text-primary">A</span>
                         </div>
-                        <h1 className="text-xl font-medium text-[var(--text-primary)] mb-1">
+                        <h1 className="text-xl font-medium text-primary mb-1">
                             Admin Login
                         </h1>
-                        <p className="text-sm text-[var(--text-muted)]">
+                        <p className="text-sm text-muted">
                             Sign in to access admin panel
                         </p>
                     </div>
@@ -80,14 +80,14 @@ export default function AdminSignInPage() {
                         </Button>
                     </form>
 
-                    <div className="mt-6 pt-6 border-t border-[var(--border)] text-center">
-                        <p className="text-sm text-[var(--text-muted)]">
+                    <div className="mt-6 pt-6 border-t border-default text-center">
+                        <p className="text-sm text-muted">
                             Need an admin account?{' '}
-                            <Link href="/admin/signup" className="text-[var(--text-primary)] hover:underline">
+                            <Link href="/admin/signup" className="text-primary hover:underline">
                                 Sign up
                             </Link>
                         </p>
-                        <p className="text-sm text-[var(--text-muted)] mt-2">
+                        <p className="text-sm text-muted mt-2">
                             <Link href="/auth/signin" className="hover:underline">
                                 ← Back to user login
                             </Link>
