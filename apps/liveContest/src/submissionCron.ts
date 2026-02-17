@@ -3,16 +3,24 @@ import { redisClient } from './redisClient';
 //idempotent submission to do cron calling 
 
 let  lastProcessedVersion  = await redisClient.get("submission:version")
+
+
 export async function submissions( buffer : any) : Promise<any>{ 
     console.log('welll I am inside submissions and should post them finally ')
     //take submission from redis 
     // do upset 
-    const result = await prisma.submissions.createMany({
-        data : buffer , 
-        skipDuplicates : true
-    })
-    console.log("updated it in prisma result " + JSON.stringify(result))
-    return result
+    try { 
+         const result = await prisma.submissions.createMany({
+            data : buffer , 
+            skipDuplicates : true
+        })
+        console.log("updated it in prisma result " + JSON.stringify(result))
+        return result
+    }
+   catch(e){ 
+        console.log("error" + e)
+        return null
+   }
 }
 
 export async function submissionCronLogic(){
