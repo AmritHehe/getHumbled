@@ -90,7 +90,7 @@ export function QuestionCard({
             </div>
 
             {/* Progress Bar */}
-            <div className="mt-6 pt-6 border-t border-default">
+            {/* <div className="mt-6 pt-6 border-t border-default">
                 <div className="flex items-center justify-between text-sm text-muted mb-2">
                     <span>Progress</span>
                     <span>{questionNumber}/{totalQuestions}</span>
@@ -101,7 +101,7 @@ export function QuestionCard({
                         style={{ width: `${(questionNumber / totalQuestions) * 100}%` }}
                     />
                 </div>
-            </div>
+            </div> */}
         </div>
     );
 }
