@@ -75,7 +75,9 @@ export async function SignIn(req : Request  , res : Response ){
 
         const token = jwt.sign({
             userId : result.id, 
-            role : result.role
+            role : result.role , 
+            name : result.name , 
+            email : result.email
         } , jwtSecret)
 
         return res.status(201).json({
@@ -95,7 +97,7 @@ export async function SignIn(req : Request  , res : Response ){
 }
 export async function User(req : Request  , res : Response){ 
     const userId = req.userId
-
+    //password filter ? 
     try { 
         const userDetails = await prisma.user.findUnique({
             where : { 
