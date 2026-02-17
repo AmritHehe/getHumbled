@@ -1,10 +1,12 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect , useState} from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Trophy, HelpCircle, Users, Settings, ChevronLeft, ChevronRight, BookOpen } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { LayoutDashboard, Trophy, HelpCircle, Users, Settings, ChevronLeft, ChevronRight, BookOpen, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/lib/auth-context';
+import toast from 'react-hot-toast';
 
 const sidebarLinks = [
     { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
@@ -17,7 +19,32 @@ const sidebarLinks = [
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
-    const [collapsed, setCollapsed] = React.useState(false);
+    const router = useRouter();
+    const { isAdmin, isLoading } = useAuth();
+    const [collapsed, setCollapsed] = useState(false);
+
+    // Allow signin/signup pages without admin check
+    const isAuthPage = pathname === '/admin/signin' || pathname === '/admin/signup';
+
+    useEffect(() => {
+        if (!isAuthPage && !isLoading && !isAdmin) {
+            toast.error('Forbidden, wrong role');
+            router.push('/admin/signup');
+        }
+    }, [isAuthPage, isLoading, isAdmin, router]);
+
+    // Auth pages render without sidebar or admin check
+    if (isAuthPage) return <>{children}</>;
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <Loader2 className="w-6 h-6 animate-spin text-muted" />
+            </div>
+        );
+    }
+
+    if (!isAdmin) return null;
 
     return (
         <div className="flex min-h-[calc(100vh-4rem)]">

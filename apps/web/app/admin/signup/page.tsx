@@ -7,10 +7,11 @@ import { Mail, Lock, User } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { api } from '@/lib/api';
+import { useAuth } from '@/lib/auth-context';
 
 export default function AdminSignUpPage() {
     const router = useRouter();
+    const { adminSignUp, adminSignIn } = useAuth();
     const [isLoading, setIsLoading] = useState(false);
     const [formData, setFormData] = useState({
         username: '',
@@ -28,15 +29,12 @@ export default function AdminSignUpPage() {
 
         setIsLoading(true);
 
-        const result = await api.adminSignUp(formData);
+        const result = await adminSignUp(formData.username, formData.email, formData.password);
 
         if (result.success) {
             toast.success('Admin account created!');
             // Sign in after signup
-            const signInResult = await api.adminSignIn({
-                email: formData.email,
-                password: formData.password,
-            });
+            const signInResult = await adminSignIn(formData.email, formData.password);
             if (signInResult.success) {
                 router.push('/admin');
             } else {
@@ -116,6 +114,11 @@ export default function AdminSignUpPage() {
                         <p className="text-sm text-muted mt-2">
                             <Link href="/auth/signup" className="hover:underline">
                                 ← Back to user registration
+                            </Link>
+                        </p>
+                        <p className="text-sm text-muted mt-2">
+                            <Link href="/" className="text-accent-primary hover:underline font-medium">
+                                Not an admin? Go home →
                             </Link>
                         </p>
                     </div>

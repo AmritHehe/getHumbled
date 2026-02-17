@@ -7,10 +7,11 @@ import { Mail, Lock } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { api } from '@/lib/api';
+import { useAuth } from '@/lib/auth-context';
 
 export default function AdminSignInPage() {
     const router = useRouter();
+    const { adminSignIn } = useAuth();
     const [isLoading, setIsLoading] = useState(false);
     const [formData, setFormData] = useState({
         email: '',
@@ -21,7 +22,7 @@ export default function AdminSignInPage() {
         e.preventDefault();
         setIsLoading(true);
 
-        const result = await api.adminSignIn(formData);
+        const result = await adminSignIn(formData.email, formData.password);
 
         if (result.success) {
             toast.success('Welcome back, Admin!');
@@ -90,6 +91,11 @@ export default function AdminSignInPage() {
                         <p className="text-sm text-muted mt-2">
                             <Link href="/auth/signin" className="hover:underline">
                                 ← Back to user login
+                            </Link>
+                        </p>
+                        <p className="text-sm text-muted mt-2">
+                            <Link href="/" className="text-accent-primary hover:underline font-medium">
+                                Not an admin? Go home →
                             </Link>
                         </p>
                     </div>
