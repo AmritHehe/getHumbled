@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { ApiResponse, AuthResponse, Contest, SignInData, SignUpData, CreateContestData, CreateMCQData } from './types';
+import type { ApiResponse, AuthResponse, Contest, CreateContestData, CreateMCQData } from './types';
 
 const http = axios.create({
     baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3004',
@@ -28,21 +28,21 @@ function getToken(): string | null {
     return typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 }
 
-async function signUp(data: Omit<SignUpData, 'role'>) {
+async function signUp(data: { username: string; email: string; password: string }) {
     return http.post('/user/signUp', { ...data, role: 'USER' }) as any as ApiResponse<{ name: string; email: string }>;
 }
 
-async function signIn(data: Omit<SignInData, 'role'>) {
+async function signIn(data: { email: string; password: string }) {
     const res = await http.post('/user/signIn', { ...data, role: 'USER' }) as any as ApiResponse<AuthResponse>;
     if (res.success && res.data?.token) setToken(res.data.token);
     return res;
 }
 
-async function adminSignUp(data: Omit<SignUpData, 'role'>) {
+async function adminSignUp(data: { username: string; email: string; password: string }) {
     return http.post('/signUp', { ...data, role: 'ADMIN' }) as any as ApiResponse<{ name: string; email: string }>;
 }
 
-async function adminSignIn(data: Omit<SignInData, 'role'>) {
+async function adminSignIn(data: { email: string; password: string }) {
     const res = await http.post('/signin', { ...data, role: 'ADMIN' }) as any as ApiResponse<AuthResponse>;
     if (res.success && res.data?.token) setToken(res.data.token);
     return res;

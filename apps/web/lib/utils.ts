@@ -39,7 +39,3 @@ export function getContestStatusColor(status: 'UPCOMING' | 'LIVE' | 'CLOSED'): s
             return 'bg-zinc-500/20 text-zinc-400 border-zinc-500/30';
     }
 }
-
-export function getContestTypeIcon(type: 'DSA' | 'DEV'): string {
-    return type === 'DSA' ? '🧮' : '💻';
-}

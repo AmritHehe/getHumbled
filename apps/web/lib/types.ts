@@ -37,12 +37,6 @@ export interface Leaderboard {
   score: Score[];
 }
 
-export interface Score {
-  id: string;
-  user: string; // This is actually the username string in schema?? 'user String'
-  Rank: string;
-}
-
 export interface MCQ {
   id: string;
   srNo: number;
@@ -87,18 +81,7 @@ export interface AuthResponse {
   token: string;
 }
 
-export interface SignUpData {
-  username: string;
-  email: string;
-  password: string;
-  role: Role;
-}
 
-export interface SignInData {
-  email: string;
-  password: string;
-  role: Role;
-}
 
 export interface CreateContestData {
   title: string;
