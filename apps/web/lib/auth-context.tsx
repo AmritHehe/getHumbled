@@ -29,9 +29,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 const payload = JSON.parse(atob(token.split('.')[1]));
                 setUser({
                     id: payload.userId,
-                    name: '',
-                    email: null,
-                    role: payload.role === 'Admin' ? 'ADMIN' : 'USER',
+                    name: payload.name,
+                    email: payload.email,
+                    role: payload.role === 'ADMIN' ? 'ADMIN' : 'USER',
                 });
             } catch {
                 api.signOut();
