@@ -3,8 +3,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Loader2, CheckCircle, XCircle, BookOpen, RefreshCw, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Loader2, CheckCircle, RefreshCw, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { QuestionCard } from '@/components/QuestionCard';
 import { api } from '@/lib/api';
 import type { Contest, MCQOption, WSQuestion } from '@/lib/types';
 import toast from 'react-hot-toast';
@@ -34,7 +35,7 @@ function parseQuestion(rawQuestion: string, srNo: number) {
 
     return {
         id: `q${srNo}`,
-        text: questionText,
+        question: questionText,
         options,
     };
 }
@@ -80,24 +81,23 @@ export default function PracticeContestPage() {
     }, [contestId, router]);
 
     // Join practice contest
-    const joinPractice = useCallback(async () => {
+    async function joinPractice() {
         const response = await api.joinPracticeContest(contestId);
         if (response.success && response.data?.randomQuestion) {
             setCurrentQuestion(response.data.randomQuestion);
         } else if (response.success && !response.data?.randomQuestion) {
-            // All questions completed
             setIsCompleted(true);
         } else {
             toast.error(response.error || 'Failed to join practice');
         }
-    }, [contestId]);
+    }
 
     // Join on mount after contest loaded
     useEffect(() => {
         if (contest && !isLoading) {
             joinPractice();
         }
-    }, [contest, isLoading, joinPractice]);
+    }, [contest, isLoading]);
 
     // Submit answer
     const handleSubmit = async () => {
@@ -319,51 +319,17 @@ export default function PracticeContestPage() {
             <main className="flex-1 container max-w-4xl mx-auto px-6 py-8">
                 {parsedQuestion ? (
                     <div className="space-y-8 mt-4">
-                        {/* Question Card */}
-                        <div className="bg-card rounded-2xl border border-default p-8 shadow-sm">
-                            <div className="flex items-center gap-2 mb-4">
-                                <span className="text-xs bg-elevated text-muted px-2 py-1 rounded font-medium">
-                                    Question {answeredCount + 1}
-                                </span>
-                                <span className="text-xs text-muted">
-                                    {currentQuestion?.points || 10} pts
-                                </span>
-                            </div>
-
-                            <h2 className="text-xl font-medium text-primary leading-relaxed whitespace-pre-line">
-                                {parsedQuestion.text}
-                            </h2>
-                        </div>
-
-                        {/* Options */}
-                        <div className="grid grid-cols-1 gap-3">
-                            {parsedQuestion.options.map((option) => (
-                                <button
-                                    key={option.key}
-                                    onClick={() => setSelectedAnswer(option.key as MCQOption)}
-                                    disabled={isSubmitting}
-                                    className={`w-full text-left p-5 rounded-xl border-2 transition-all duration-200 ${selectedAnswer === option.key
-                                        ? 'border-accent-primary bg-accent-primary/5'
-                                        : 'border-default bg-card hover:border-text-muted hover:bg-elevated'
-                                        }`}
-                                >
-                                    <div className="flex items-start gap-4">
-                                        <span className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm shrink-0 ${selectedAnswer === option.key
-                                            ? 'bg-accent-primary text-white'
-                                            : 'bg-elevated text-muted'
-                                            }`}>
-                                            {option.key}
-                                        </span>
-                                        <span className={`text-base leading-relaxed ${selectedAnswer === option.key
-                                            ? 'text-primary font-medium'
-                                            : 'text-secondary'
-                                            }`}>
-                                            {option.text}
-                                        </span>
-                                    </div>
-                                </button>
-                            ))}
-                        </div>
+                        <QuestionCard
+                            questionNumber={answeredCount + 1}
+                            totalQuestions={totalQuestions}
+                            question={parsedQuestion.question}
+                            options={parsedQuestion.options}
+                            selectedAnswer={selectedAnswer || undefined}
+                            onSelectAnswer={(answer) => setSelectedAnswer(answer)}
+                            points={currentQuestion?.points || 10}
+                            avgTime={currentQuestion?.avgTTinMins || 0}
+                            isSubmitted={false}
+                        />
 
                         {/* Submit Button */}
                         <div className="flex justify-center pt-4">

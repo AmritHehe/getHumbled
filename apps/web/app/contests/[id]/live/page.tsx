@@ -9,6 +9,7 @@ import { QuestionCard } from '@/components/QuestionCard';
 import { Timer } from '@/components/Timer';
 import { LeaderboardTable } from '@/components/LeaderboardTable';
 import { api } from '@/lib/api';
+import { useAuth } from '@/lib/auth-context';
 import type { Contest, MCQOption, WSQuestion } from '@/lib/types';
 import toast from 'react-hot-toast';
 import { formatTime } from '@/lib/utils';
@@ -56,11 +57,12 @@ export default function LiveContestPage() {
     const params = useParams();
     const router = useRouter();
     const contestId = params.id as string;
+    const { user } = useAuth();
 
     const [contest, setContest] = useState<Contest | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    // New state for sequential question flow
+    // Question flow state
     const [currentQuestion, setCurrentQuestion] = useState<WSQuestion | null>(null);
     const [totalQuestions, setTotalQuestions] = useState(0);
     const [answeredCount, setAnsweredCount] = useState(0);
@@ -77,21 +79,7 @@ export default function LiveContestPage() {
     const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
     const [userScore, setUserScore] = useState(0);
     const [userRank, setUserRank] = useState<number | null>(null);
-    const [userId, setUserId] = useState<string | null>(null);
     const previousLeaderboardRef = useRef<Map<string, number>>(new Map());
-
-    // Get user ID from token on client side only
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            const token = localStorage.getItem('token');
-            if (token) {
-                try {
-                    const payload = JSON.parse(atob(token.split('.')[1]));
-                    setUserId(payload.userId);
-                } catch { }
-            }
-        }
-    }, []);
 
     // Transform backend leaderboard format to frontend format
     const transformLeaderboard = useCallback((data: { value: string; score: number }[]) => {
@@ -113,28 +101,14 @@ export default function LiveContestPage() {
         return newEntries;
     }, []);
 
-    // Get current user ID from token (client-side only)
-    const getUserIdFromToken = useCallback(() => {
-        if (typeof window === 'undefined') return null;
-        const token = localStorage.getItem('token');
-        if (!token) return null;
-        try {
-            const payload = JSON.parse(atob(token.split('.')[1]));
-            return payload.userId;
-        } catch {
-            return null;
-        }
-    }, []);
-
     // Update user stats from leaderboard
     const updateUserStats = useCallback((entries: LeaderboardEntry[]) => {
-        const userId = getUserIdFromToken();
-        const userEntry = entries.find(e => e.userId === userId);
+        const userEntry = entries.find(e => e.userId === user?.id);
         if (userEntry) {
             setUserScore(userEntry.totalPoints);
             setUserRank(userEntry.rank);
         }
-    }, []);
+    }, [user?.id]);
 
     // Connect to WebSocket
     useEffect(() => {
@@ -363,7 +337,7 @@ export default function LiveContestPage() {
         }
     };
 
-    // userId is now from state set in useEffect
+
 
     // Timer is now based on contest.StartTime and contest.ContestTotalTime
 
@@ -438,7 +412,7 @@ export default function LiveContestPage() {
             </div>
         );
     }
-
+    console.log("contest details" + JSON.stringify(contest))
     return (
         <div className="min-h-screen bg-surface-alt flex flex-col">
             {/* Top Bar */}
@@ -473,7 +447,7 @@ export default function LiveContestPage() {
 
                         {/* Right: Timer */}
                         <Timer
-                            startTime={contest.StartTime}
+                            startTime={contest.StartDate}
                             totalMinutes={contest.ContestTotalTime || 60}
                             onTimeUp={handleFinishContest}
                         />
@@ -554,7 +528,7 @@ export default function LiveContestPage() {
                             {leaderboard.length > 0 ? (
                                 <div className="space-y-1.5 max-h-[240px] overflow-y-auto">
                                     {leaderboard.map((entry, idx) => {
-                                        const isMe = entry.userId === userId;
+                                        const isMe = entry.userId === user?.id;
                                         const displayName = entry.userName.length > 12
                                             ? entry.userName.slice(0, 12) + '…'
                                             : entry.userName;
