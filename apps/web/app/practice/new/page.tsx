@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState , useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
@@ -20,7 +20,7 @@ export default function CreatePracticeQuizPage() {
     });
 
     // Redirect if not authenticated (only after auth has loaded)
-    React.useEffect(() => {
+    useEffect(() => {
         if (!authLoading && !isAuthenticated) {
             toast.error('Please sign in to create practice quizzes');
             router.push('/auth/signin');
