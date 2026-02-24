@@ -120,7 +120,7 @@ export default function AddQuestionPage() {
                                             : 'border-default text-secondary hover:border-hover'
                                     )}
                                 >
-                                    {type === 'MCQ' ? '📝 Multiple Choice' : '💻 Coding'}
+                                    {type === 'MCQ' ? 'Multiple Choice' : 'Coding'}
                                 </button>
                             ))}
                         </div>
@@ -211,10 +211,10 @@ export default function AddQuestionPage() {
                             </h2>
 
                             <div>
-                                <label className="label">Expected Solution</label>
+                                <label className="label">Test Cases</label>
                                 <textarea
                                     className="input-field min-h-[200px] resize-y font-mono text-sm"
-                                    placeholder="// Enter the expected solution code here..."
+                                    placeholder="This Mode is COMING SOON"
                                     value={formData.codeSolution}
                                     onChange={(e) => setFormData({ ...formData, codeSolution: e.target.value })}
                                     required
@@ -231,9 +231,10 @@ export default function AddQuestionPage() {
                             Cancel
                         </Button>
                     </Link>
-                    <Button variant="primary" type="submit" isLoading={isLoading} leftIcon={<Plus className="w-4 h-4" />}>
-                        Add Question
-                    </Button>
+                    {questionType === 'MCQ' ?
+                        <Button variant="primary" type="submit" isLoading={isLoading} leftIcon={<Plus className="w-4 h-4" />}>
+                            Add Question
+                        </Button> : <></> }
                 </div>
             </form>
         </div>
