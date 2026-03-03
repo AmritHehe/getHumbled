@@ -480,8 +480,8 @@ export async function SubmitAnswerOfPracticeContest(req:Request , res : Response
     // we need a function here , which will serch -> which fires a random question , and also checking that if that question isnt already exisit in the array 
 
     catch(e){ 
-        alert("error submiting user answer " + e)
-        return res.status(200).json({
+        console.log("error submiting user answer " + e)
+        return res.status(500).json({
             success : false , 
             error : "error in submitting answer " + e,
             data : null

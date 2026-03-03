@@ -28,7 +28,6 @@ export async function SignUp(req : Request  , res : Response ){
             data :  { 
                 name : result.name,
                 email : result.email , 
-                password : result.password,
                 role : result.role
             }
         })
@@ -66,7 +65,7 @@ export async function SignIn(req : Request  , res : Response ){
         }
         const passCheck = await bcrypt.compare(data.password , result.password)
         if(!passCheck){ 
-            res.status(403).json({
+            return res.status(403).json({
                 success : false , 
                 error : "invalid credentials"
             })
@@ -109,7 +108,7 @@ export async function User(req : Request  , res : Response){
                 success : false , 
                 error : "user not found"
             })
-        }9
+        }
         return res.status(200).json({
             success : true , 
             data : userDetails
