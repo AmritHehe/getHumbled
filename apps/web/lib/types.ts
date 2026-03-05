@@ -26,7 +26,7 @@ export interface Contest {
   StartDate?: string;
   StartTime?: string;
   ContestTotalTime?: number;
-  mode?: ContestMode;
+  mode: ContestMode;
   MCQ?: MCQ[];
   codeQ?: CodeQuestion[];
   leaderboard?: Leaderboard;

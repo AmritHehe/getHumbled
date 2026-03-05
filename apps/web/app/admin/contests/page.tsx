@@ -25,6 +25,7 @@ export default function AdminContestsPage() {
     useEffect(() => {
         async function fetchContests() {
             setIsLoading(true);
+            console.log("I am calling backend")
             const response = await api.getContests(activeFilter === 'ALL' ? undefined : { status: activeFilter });
             if (response.success && response.data) {
                 setContests(response.data);
@@ -34,7 +35,7 @@ export default function AdminContestsPage() {
             setIsLoading(false);
         }
         fetchContests();
-    }, [activeFilter]);
+    }, []);
 
     const filteredContests = contests.filter((contest) =>
         contest.title.toLowerCase().includes(searchQuery.toLowerCase())

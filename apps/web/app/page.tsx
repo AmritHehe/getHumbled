@@ -25,7 +25,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen">
-      {/* Hero */}
+
       <section className="py-24 md:py-32">
         <div className="container">
           <div className="max-w-2xl">
@@ -56,7 +56,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Stats */}
       <section className="border-y border-default">
         <div className="container">
           <div className="grid grid-cols-3 divide-x divide-default">
@@ -74,7 +73,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Live Contests */}
+
       <section className="section">
         <div className="container">
           <div className="flex items-center justify-between mb-8">
@@ -120,7 +119,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Features */}
+
       <section className="section border-t border-default">
         <div className="container">
           <div className="mb-12">
@@ -144,7 +143,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CTA */}
+
       <section className="section border-t border-default">
         <div className="container">
           <div className="text-center max-w-md mx-auto">

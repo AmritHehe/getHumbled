@@ -21,7 +21,7 @@ export default function ContestDetailPage() {
             const response = await api.getContest(params.id as string);
             if (response.success && response.data) {
                 setContest(response.data);
-                // Backend returns 'mode' as the computed contest state
+                // Backend returns mode as the computed contest state
                 setContestState((response as any).mode || null);
             }
             setIsLoading(false);
@@ -31,7 +31,7 @@ export default function ContestDetailPage() {
 
     if (isLoading) {
         return (
-            <div className="container py-8">
+            <div className="container py-8 ">
                 <div className="skeleton h-6 w-32 mb-8" />
                 <div className="skeleton h-10 w-3/4 mb-4" />
                 <div className="skeleton h-5 w-1/2 mb-8" />
@@ -116,11 +116,11 @@ export default function ContestDetailPage() {
             case 'UPCOMING':
                 return (
                     <Button variant="secondary" className="w-full" leftIcon={<Bell className="w-4 h-4" />}>
-                        Notify Me
+                        Notify Me(Coming Soom)
                     </Button>
                 );
             default:
-                // Closed real contest - show message about practice coming
+                // Closed real contest - show message about practice coming- admin need to finalize the contest first
                 return (
                     <div className="space-y-3">
                         <p className="text-sm text-muted text-center">
@@ -186,7 +186,7 @@ export default function ContestDetailPage() {
                                 <Clock className="w-4 h-4 text-muted" />
                                 <div>
                                     <p className="text-xs text-muted">Duration</p>
-                                    <p className="text-sm text-primary">90 minutes</p>
+                                    <p className="text-sm text-primary">{contest.ContestTotalTime} mins</p>
                                 </div>
                             </div>
                         </div>
@@ -247,8 +247,8 @@ export default function ContestDetailPage() {
                                 </div>
                             ) : (
                                 <div className="flex items-center justify-center gap-2 py-6 text-muted">
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                    <span className="text-sm">Admin is finalizing leaderboard...</span>
+                                    {/* <Loader2 className="w-4 h-4 animate-spin" /> */}
+                                    <span className="text-sm">Admin is finalizing the leaderboard, it will be available soon</span>
                                 </div>
                             )}
                         </div>
