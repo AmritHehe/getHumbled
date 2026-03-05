@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
@@ -18,6 +18,7 @@ const filters: { label: string; value: FilterValue }[] = [
 ];
 
 export default function ContestsPage() {
+    const ContestsRef  = useRef<Contest[]>([])
     const [contests, setContests] = useState<Contest[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [activeFilter, setActiveFilter] = useState<FilterValue>('ALL');
@@ -26,45 +27,52 @@ export default function ContestsPage() {
     useEffect(() => {
         async function fetchContests() {
             setIsLoading(true);
-
-            // Build filters based on selection
-            let apiFilters: { status?: ContestStatus; mode?: ContestMode } | undefined;
-
-            if (activeFilter === 'LIVE') {
-                apiFilters = { status: 'LIVE' };
-            } else if (activeFilter === 'UPCOMING') {
-                apiFilters = { status: 'UPCOMING' };
-            } else if (activeFilter === 'PRACTICE') {
-                apiFilters = { mode: 'practice' };
-            }
-
-            const response = await api.getContests(apiFilters);
+            const response = await api.getContests();
             if (response.success && response.data) {
-                setContests(response.data);
+                ContestsRef.current = (response.data);
+                setContests(ContestsRef.current)
             } else {
                 setContests([]);
             }
             setIsLoading(false);
         }
         fetchContests();
-    }, [activeFilter]);
+    }, []);
+
+    useEffect(()=> {
+        let x = [...ContestsRef.current]
+        if (activeFilter === 'LIVE') {
+            console.log("active Filter valie " + activeFilter)
+            x = x.filter((contests : Contest) => contests.status == activeFilter && contests.mode!='practice')
+            console.log(x)
+        } else if (activeFilter === 'UPCOMING') {
+            x= x.filter((contests : Contest) => contests.status == activeFilter)
+            console.log(x)
+        } else if (activeFilter === 'PRACTICE') {
+            x= x.filter((contests : Contest) => contests.mode == 'practice' )
+            console.log(x)
+        } else { 
+            
+        }
+        
+        
+        
+        setContests(x)
+    },[,activeFilter])
 
     const filteredContests = contests.filter((contest) => {
         const matchesSearch = contest.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
             contest.discription.toLowerCase().includes(searchQuery.toLowerCase());
 
-        // When LIVE filter is active, exclude practice mode contests
-        if (activeFilter === 'LIVE' && (contest as any).mode === 'practice') {
-            return false;
-        }
-
         return matchesSearch;
     });
 
-    // Sort: LIVE first, then UPCOMING, then others
+
     const sortedContests = [...filteredContests].sort((a, b) => {
-        const order: Record<string, number> = { LIVE: 0, UPCOMING: 1, CLOSED: 2 };
-        return (order[a.status] ?? 3) - (order[b.status] ?? 3);
+        if(a.mode == b.mode){
+            return (b.status.localeCompare(a.status))
+        }
+        return (b.mode.localeCompare(a.mode));
     });
 
     return (
