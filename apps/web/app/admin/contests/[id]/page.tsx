@@ -216,8 +216,8 @@ export default function AdminContestDetailPage() {
                                     <Button
                                         variant="ghost"
                                         size="sm"
-                                        className="group p-2 text-muted hover:text-primary min-w-[60px]"
-                                        onClick={() => toast('Coming Soon!', { icon: '🚧' })}
+                                        className="group p-2 text-muted hover:text-primary min-w-15"
+                                        onClick={() => toast('Coming Soon!')}
                                     >
                                         <Edit className="w-4 h-4 group-hover:hidden" />
                                         <span className="hidden group-hover:block text-xs">Soon</span>

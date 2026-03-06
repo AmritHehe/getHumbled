@@ -31,11 +31,20 @@ export const metadata: Metadata = {
     description: "Compete in live coding contests, master DSA and development challenges, and climb the leaderboard.",
     type: "website",
     siteName: "SkillUp",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Autm8n — Node Based Automation Platform",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "SkillUp - Level Up Your Coding Skills",
     description: "Compete in live coding contests, master DSA and development challenges.",
+    images: ["https://autm8n.com/og-image.png"],
   },
   robots: {
     index: true,

@@ -137,7 +137,7 @@ export default function AddQuestionPage() {
                         <div>
                             <label className="label">Question</label>
                             <textarea
-                                className="input-field min-h-[100px] resize-y"
+                                className="input-field min-h-25 resize-y"
                                 placeholder="Enter your question here..."
                                 value={formData.question}
                                 onChange={(e) => setFormData({ ...formData, question: e.target.value })}
@@ -213,7 +213,7 @@ export default function AddQuestionPage() {
                             <div>
                                 <label className="label">Test Cases</label>
                                 <textarea
-                                    className="input-field min-h-[200px] resize-y font-mono text-sm"
+                                    className="input-field min-h-50 resize-y font-mono text-sm"
                                     placeholder="This Mode is COMING SOON"
                                     value={formData.codeSolution}
                                     onChange={(e) => setFormData({ ...formData, codeSolution: e.target.value })}
