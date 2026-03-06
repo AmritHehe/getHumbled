@@ -432,7 +432,7 @@ export async function SubmitAnswerOfPracticeContest(req:Request , res : Response
             const randomQuestion = await GetRandomQuestion(data.contestId , userId ,allMCQofThisContest )
             return res.status(200).send({
                 success : true , 
-                error : "correct",
+                isCorrect : true,
                 data :  { 
                     randomQuestion : randomQuestion
                 }
@@ -467,11 +467,11 @@ export async function SubmitAnswerOfPracticeContest(req:Request , res : Response
             const randomQuestion = await GetRandomQuestion(data.contestId , userId ,[...allMCQofThisContest] )
             return res.status(200).json({
                 success : true , 
-                error : "incorrect",
+                isCorrect : false,
                 data :  { 
                     randomQuestion : randomQuestion
                 }, 
-                message : "correct answer" +  correctAnswer
+                correctAnswer : correctAnswer
             })
             
         }
