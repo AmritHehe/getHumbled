@@ -189,7 +189,7 @@ export default function LeaderboardPage() {
                                         </p>
                                         {idx < 3 && (
                                             <p className="text-xs text-muted">
-                                                {idx === 0 ? '🥇 1st Place' : idx === 1 ? '🥈 2nd Place' : '🥉 3rd Place'}
+                                                {idx === 0 ? '1st Place' : idx === 1 ? '2nd Place' : '3rd Place'}
                                             </p>
                                         )}
                                     </div>

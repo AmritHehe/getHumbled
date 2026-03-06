@@ -157,7 +157,7 @@ export function useContestWebSocket(contestId: string, totalQuestions: number): 
 
                 // Handle incorrect answer (new: isCorrect field)
                 if (message.isCorrect === false) {
-                    toast('Wrong answer', { icon: '❌' });
+                    toast('Wrong answer');
                     setIsSubmitting(false);
                     setAnsweredCount(prev => prev + 1);
 

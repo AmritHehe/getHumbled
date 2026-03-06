@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
+import { useAuth } from '@/lib/auth-context';
 import { ArrowLeft, Send, Wifi, WifiOff, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { QuestionCard } from '@/components/QuestionCard';
@@ -17,6 +18,8 @@ import toast from 'react-hot-toast';
 
 export default function LiveContestPage() {
     const params = useParams();
+    const router = useRouter();
+    const { isAuthenticated, isLoading: authLoading } = useAuth();
     const contestId = params.id as string;
 
     const [contest, setContest] = useState<Contest | null>(null);
@@ -37,6 +40,25 @@ export default function LiveContestPage() {
         timeTaken,
         submitAnswer,
     } = useContestWebSocket(contestId, totalQuestions);
+
+    // Auth guard — redirect unauthenticated users
+    useEffect(() => {
+        if (!authLoading && !isAuthenticated) {
+            toast.error('Please sign in to join a live contest');
+            router.push(`/auth/signin?redirect=/contests/${contestId}`);
+        }
+    }, [authLoading, isAuthenticated, router, contestId]);
+
+    if (authLoading || !isAuthenticated) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="flex items-center gap-3 text-muted">
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Checking authentication...
+                </div>
+            </div>
+        );
+    }
 
     // Fetch contest metadata (questions come via WS)
     useEffect(() => {

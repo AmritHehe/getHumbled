@@ -89,8 +89,8 @@ export default function CreatePracticeQuizPage() {
             />
 
             {/* Ambient glow */}
-            <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-accent/3 blur-[150px] rounded-full pointer-events-none" />
-
+            <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-150 h-150 bg-accent/3 blur-[150px] rounded-full pointer-events-none" />
+            
             {/* Back button - top left */}
             <Link
                 href="/contests"
@@ -107,7 +107,7 @@ export default function CreatePracticeQuizPage() {
                     <div className="text-center mb-10">
                         <h1 className="text-4xl font-bold text-primary mb-3">Create Practice Quiz</h1>
                         <p className="text-lg text-secondary">
-                            Name your quiz, then AI will generate questions
+                            Name your quiz,add brief description, then AI will generate questions
                         </p>
                     </div>
 
@@ -130,7 +130,7 @@ export default function CreatePracticeQuizPage() {
                             <textarea
                                 value={formData.discription}
                                 onChange={(e) => setFormData({ ...formData, discription: e.target.value })}
-                                placeholder="What will your quiz be about? e.g., JavaScript closures for beginners..."
+                                placeholder="What will your quiz be about?, add good description e.g., JavaScript closures for beginners..."
                                 className="w-full h-32 px-5 py-4 rounded-xl border border-default bg-card text-primary placeholder:text-muted resize-none focus:outline-none focus:border-accent transition-all text-base leading-relaxed"
                                 disabled={isLoading}
                             />
@@ -147,7 +147,7 @@ export default function CreatePracticeQuizPage() {
                                         "bg-accent text-surface",
                                         "disabled:opacity-30 disabled:cursor-not-allowed",
                                         "hover:opacity-90",
-                                        "px-5 py-2.5 min-w-[120px]"
+                                        "px-5 py-2.5 min-w-30"
                                     )}
                                 >
                                     <span

@@ -18,8 +18,8 @@ export function ContestCard({ contest }: ContestCardProps) {
     const typeVariant = contest.type.toLowerCase() as 'dsa' | 'dev';
 
     return (
-        <Card className="group overflow-hidden">
-            <CardContent className="p-6">
+        <Card className="group overflow-hidden h-full">
+            <CardContent className="p-6 flex flex-col h-full">
                 {/* Header */}
                 <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-2">
@@ -41,7 +41,7 @@ export function ContestCard({ contest }: ContestCardProps) {
                 <h3 className="text-lg font-semibold text-primary mb-2 group-hover:text-accent-primary transition-colors">
                     {contest.title}
                 </h3>
-                <p className="text-sm text-secondary line-clamp-2 mb-4">
+                <p className="text-sm text-secondary line-clamp-2 mb-4 flex-1">
                     {contest.discription}
                 </p>
 

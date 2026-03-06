@@ -407,7 +407,7 @@ wss.on('connection', async function connection(ws , request) {
                     const randomQuestion = await GetRandomQuestion(contestId , userId ,[...allMCQofThisContest] )
                     return ws.send(JSON.stringify({
                         success : true , 
-                        error : "correct",
+                        isCorrect : true,
                         data :  { 
                             UpdatedLeaderBoard : UpdatedLeaderBoard ,
                             randomQuestion : randomQuestion
@@ -420,7 +420,7 @@ wss.on('connection', async function connection(ws , request) {
                     const randomQuestion = await GetRandomQuestion(contestId , userId ,[...allMCQofThisContest] )
                     return ws.send(JSON.stringify({
                         success : true , 
-                        error : "incorrect",
+                        isCorrect : false,
                         data :  { 
                             randomQuestion : randomQuestion
                         }
@@ -432,7 +432,7 @@ wss.on('connection', async function connection(ws , request) {
             // we need a function here , which will serch -> which fires a random question , and also checking that if that question isnt already exisit in the array 
 
             catch(e){ 
-                alert("error submiting user answer " + e)
+                console.error("error submiting user answer " + e)
                 return ws.send(JSON.stringify({
                     success : false , 
                     error : "error in submitting answer " + e,

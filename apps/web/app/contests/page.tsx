@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import { Search, Filter, SlidersHorizontal } from 'lucide-react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 import { ContestCard } from '@/components/ContestCard';
 import { api } from '@/lib/api';
@@ -14,12 +14,11 @@ const filters: { label: string; value: FilterType }[] = [
     { label: 'All Contests', value: 'ALL' },
     { label: 'Live', value: 'LIVE' },
     { label: 'Upcoming', value: 'UPCOMING' },
-    { label: 'Practice', value: 'CLOSED' },
+    { label: 'Practice', value: 'PRACTICE' },
 ];
 
 export default function ContestsPage() {
-    const ContestsRef  = useRef<Contest[]>([])
-    const [contests, setContests] = useState<Contest[]>([]);
+    const [allContests , setAllContests] = useState<Contest[]>([])
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [activeFilter, setActiveFilter] = useState<FilterType>('ALL');
@@ -29,51 +28,44 @@ export default function ContestsPage() {
             setIsLoading(true);
             const response = await api.getContests();
             if (response.success && response.data) {
-                ContestsRef.current = (response.data);
-                setContests(ContestsRef.current)
+              
+                setAllContests(response.data)
             } else {
-                setContests([]);
+                setAllContests([]);
             }
             setIsLoading(false);
         }
         fetchContests();
     }, []);
 
-    useEffect(()=> {
-        let x = [...ContestsRef.current]
+    const FilteredContests = useMemo(()=> {
+        let x = [...allContests]
         if (activeFilter === 'LIVE') {
-            console.log("active Filter valie " + activeFilter)
-            x = x.filter((contests : Contest) => contests.status == activeFilter && contests.mode!='practice')
-            console.log(x)
+          x =  x.filter((contests : Contest) => contests.status == activeFilter && contests.mode!='practice')
         } else if (activeFilter === 'UPCOMING') {
-            x= x.filter((contests : Contest) => contests.status == activeFilter)
-            console.log(x)
+           x =  x.filter((contests : Contest) => contests.status == activeFilter)
         } else if (activeFilter === 'PRACTICE') {
-            x= x.filter((contests : Contest) => contests.mode == 'practice' )
-            console.log(x)
+           x=  x.filter((contests : Contest) => contests.mode == 'practice' )
         } else { 
-            
+            x =  allContests
         }
+
+        x =  x.filter((contest) => {
+                const matchesSearch = contest.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    contest.discription.toLowerCase().includes(searchQuery.toLowerCase());
+                return matchesSearch;
+            });
         
-        
-        
-        setContests(x)
-    },[,activeFilter])
-
-    const filteredContests = contests.filter((contest) => {
-        const matchesSearch = contest.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            contest.discription.toLowerCase().includes(searchQuery.toLowerCase());
-
-        return matchesSearch;
-    });
+        return x.sort((a, b) => {
+            if(a.mode == b.mode){
+                return (b.status.localeCompare(a.status))
+            }
+            return (b.mode.localeCompare(a.mode));
+        });   
+    },[searchQuery , allContests , activeFilter])
 
 
-    const sortedContests = [...filteredContests].sort((a, b) => {
-        if(a.mode == b.mode){
-            return (b.status.localeCompare(a.status))
-        }
-        return (b.mode.localeCompare(a.mode));
-    });
+    
 
     return (
         <div className="container py-8">
@@ -88,17 +80,8 @@ export default function ContestsPage() {
             </div>
 
             {/* Search + Filters */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-8">
-                <div className="w-full sm:w-72">
-                    <Input
-                        placeholder="Search contests..."
-                        value={searchQuery}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
-                        leftIcon={<Search className="w-4 h-4" />}
-                    />
-                </div>
+            <div className="flex flex-col sm:flex-row items-start  justify-between sm:items-center gap-4 mb-8">
                 <div className="flex items-center gap-2 overflow-x-auto pb-1">
-                    <SlidersHorizontal className="w-4 h-4 text-muted shrink-0" />
                     {filters.map((filter) => (
                         <button
                             key={filter.value}
@@ -114,6 +97,15 @@ export default function ContestsPage() {
                         </button>
                     ))}
                 </div>
+                <div className="w-full sm:w-72">
+                    <Input
+                        placeholder="Search contests..."
+                        value={searchQuery}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+                        leftIcon={<Search className="w-4 h-4" />}
+                    />
+                </div>
+                
             </div>
 
             {/* Contest Grid */}
@@ -129,15 +121,14 @@ export default function ContestsPage() {
                         </div>
                     ))}
                 </div>
-            ) : sortedContests.length > 0 ? (
+            ) : FilteredContests.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {sortedContests.map((contest) => (
+                    {FilteredContests.map((contest) => (
                         <ContestCard key={contest.id} contest={contest} />
                     ))}
                 </div>
             ) : (
                 <div className="text-center py-16 card">
-                    <Filter className="w-10 h-10 text-muted mx-auto mb-4" />
                     <p className="text-secondary mb-1">No contests found</p>
                     <p className="text-sm text-muted">
                         {searchQuery ? 'Try a different search term' : 'Check back later for new contests'}

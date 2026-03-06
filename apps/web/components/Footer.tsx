@@ -9,15 +9,13 @@ export function Footer() {
                     <p className="text-sm text-muted">
                         © {new Date().getFullYear()} SkillUp
                     </p>
+                    <p className='text-sm text-muted'>made with love by amrithehe</p>
                     <div className="flex items-center gap-6 text-sm text-muted">
                         <Link href="/contests" className="hover:text-primary transition-colors">
                             Contests
                         </Link>
                         <Link href="/leaderboard" className="hover:text-primary transition-colors">
                             Leaderboard
-                        </Link>
-                        <Link href="/about" className="hover:text-primary transition-colors">
-                            About
                         </Link>
                     </div>
                 </div>

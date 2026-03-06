@@ -29,13 +29,3 @@ export function formatTime(seconds: number): string {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 }
 
-export function getContestStatusColor(status: 'UPCOMING' | 'LIVE' | 'CLOSED'): string {
-    switch (status) {
-        case 'LIVE':
-            return 'bg-green-500/20 text-green-400 border-green-500/30';
-        case 'UPCOMING':
-            return 'bg-amber-500/20 text-amber-400 border-amber-500/30';
-        case 'CLOSED':
-            return 'bg-zinc-500/20 text-zinc-400 border-zinc-500/30';
-    }
-}
