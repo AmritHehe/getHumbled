@@ -20,9 +20,27 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "SkillUp - Level Up Your Coding Skills",
+  title: {
+    default: "SkillUp - Level Up Your Coding Skills",
+    template: "%s | SkillUp",
+  },
   description: "Compete in live coding contests, master DSA and development challenges, and track your progress on the global leaderboard.",
-  keywords: ["coding", "contests", "DSA", "development", "competitive programming", "leaderboard"],
+  keywords: ["coding", "contests", "DSA", "development", "competitive programming", "leaderboard", "quiz", "practice"],
+  openGraph: {
+    title: "SkillUp - Level Up Your Coding Skills",
+    description: "Compete in live coding contests, master DSA and development challenges, and climb the leaderboard.",
+    type: "website",
+    siteName: "SkillUp",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "SkillUp - Level Up Your Coding Skills",
+    description: "Compete in live coding contests, master DSA and development challenges.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({

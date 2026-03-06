@@ -3,15 +3,7 @@
 import React from 'react';
 import { Trophy, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-interface LeaderboardEntry {
-    rank: number;
-    userId: string;
-    userName: string;
-    totalPoints: number;
-    previousRank?: number;
-    isCurrentUser?: boolean;
-}
+import type { LeaderboardEntry } from '@/lib/types';
 
 interface LeaderboardTableProps {
     entries: LeaderboardEntry[];

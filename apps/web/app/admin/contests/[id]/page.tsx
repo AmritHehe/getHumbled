@@ -147,6 +147,11 @@ export default function AdminContestDetailPage() {
                             </Button>
                         )
                     )}
+                    <Link href={`/contests/${params.id}/leaderboard`}>
+                        <Button variant="secondary" leftIcon={<Trophy className="w-4 h-4" />}>
+                            View Leaderboard
+                        </Button>
+                    </Link>
                     <Link href={`/admin/contests/${params.id}/ai`}>
                         <Button variant="secondary" leftIcon={<Sparkles className="w-4 h-4" />}>
                             Create with AI

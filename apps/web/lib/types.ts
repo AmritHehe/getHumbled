@@ -35,6 +35,7 @@ export interface Contest {
 export interface Leaderboard {
   id: string;
   score: Score[];
+  isFinaLized?: boolean;
 }
 
 export interface MCQ {
@@ -57,17 +58,22 @@ export interface CodeQuestion {
   avgTTinMins: number;
 }
 
-export interface LeaderBoard {
-  id: string;
-  contestId: string;
-  score: Score[];
-}
-
 export interface Score {
   id: string;
   user: string;
   Rank: string;
+  TotalScore?: number;
   leaderboardId: string;
+}
+
+// Unified LeaderboardEntry — single source of truth
+export interface LeaderboardEntry {
+  rank: number;
+  userId: string;
+  userName: string;
+  totalPoints: number;
+  previousRank?: number;
+  isCurrentUser?: boolean;
 }
 
 // API Response types
@@ -75,6 +81,12 @@ export interface ApiResponse<T> {
   success: boolean;
   data?: T;
   error?: string;
+  message?: string;
+  // Answer submission fields
+  isCorrect?: boolean;
+  correctAnswer?: string;
+  // Contest state from getContest
+  mode?: ContestState;
 }
 
 export interface AuthResponse {
@@ -104,17 +116,10 @@ export interface CreateMCQData {
 
 // WebSocket message types
 export interface WSMessage {
-  type: 'join_contest' | 'leave_contest' | 'submit_answer';
+  type: 'init_contest' | 'join_contest' | 'leave_contest' | 'submit_answer' | 'finalizeContest';
   contestId?: string;
   questionId?: string;
   answer?: MCQOption;
-}
-
-export interface LeaderboardEntry {
-  userId: string;
-  userName: string;
-  totalPoints: number;
-  rank: number;
 }
 
 // Minimal MCQ returned from GetContest API (no question/solution - anti-cheat)

@@ -1,7 +1,7 @@
-import axios from 'axios';
-import type { ApiResponse, AuthResponse, Contest, CreateContestData, CreateMCQData } from './types';
+import axios, { type AxiosInstance } from 'axios';
+import type { ApiResponse, AuthResponse, Contest, CreateContestData, CreateMCQData, WSQuestion } from './types';
 
-const http = axios.create({
+const http: AxiosInstance = axios.create({
     baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3004',
     headers: { 'Content-Type': 'application/json' },
 });

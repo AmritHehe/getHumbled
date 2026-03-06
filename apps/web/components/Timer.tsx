@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatTime } from '@/lib/utils';
@@ -17,8 +17,10 @@ interface TimerProps {
 }
 
 export function Timer({ startTime, totalMinutes, initialSeconds, onTimeUp, className }: TimerProps) {
+    const onTimeUpRef = useRef(onTimeUp);
+    onTimeUpRef.current = onTimeUp;
+
     const [seconds, setSeconds] = useState(() => {
-        // If we have startTime and totalMinutes, calculate remaining time
         if (startTime && totalMinutes) {
             const start = new Date(startTime).getTime();
             const end = start + totalMinutes * 60 * 1000;
@@ -31,7 +33,7 @@ export function Timer({ startTime, totalMinutes, initialSeconds, onTimeUp, class
 
     useEffect(() => {
         if (seconds <= 0) {
-            onTimeUp?.();
+            onTimeUpRef.current?.();
             return;
         }
 
@@ -39,14 +41,15 @@ export function Timer({ startTime, totalMinutes, initialSeconds, onTimeUp, class
             setSeconds((prev) => {
                 const next = prev - 1;
                 if (next <= 0) {
-                    onTimeUp?.();
+                    onTimeUpRef.current?.();
                 }
                 return next;
             });
         }, 1000);
 
         return () => clearInterval(interval);
-    }, [seconds, onTimeUp]);
+
+    }, []); 
 
     const isLow = seconds <= 60;
     const isCritical = seconds <= 30;

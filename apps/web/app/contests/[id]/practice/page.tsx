@@ -3,42 +3,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Loader2, CheckCircle, RefreshCw, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { QuestionCard } from '@/components/QuestionCard';
+import { ContestCompletionScreen } from '@/components/ContestCompletionScreen';
 import { api } from '@/lib/api';
+import { parseQuestion } from '@/lib/parseQuestion';
 import type { Contest, MCQOption, WSQuestion } from '@/lib/types';
 import toast from 'react-hot-toast';
-
-// Parse raw question string from backend
-function parseQuestion(rawQuestion: string, srNo: number) {
-    const parts = rawQuestion.split('\n\nOptions:\n');
-    const questionText = parts[0];
-
-    let options: { key: MCQOption; text: string }[] = [
-        { key: 'A', text: '' },
-        { key: 'B', text: '' },
-        { key: 'C', text: '' },
-        { key: 'D', text: '' },
-    ];
-
-    if (parts.length > 1) {
-        const optionsLines = parts[1].split('\n');
-        options = options.map(opt => {
-            const line = optionsLines.find(l => l.startsWith(opt.key + ')'));
-            return {
-                ...opt,
-                text: line ? line.substring(3).trim() : ''
-            };
-        });
-    }
-
-    return {
-        id: `q${srNo}`,
-        question: questionText,
-        options,
-    };
-}
 
 export default function PracticeContestPage() {
     const params = useParams();
@@ -81,7 +53,7 @@ export default function PracticeContestPage() {
     }, [contestId, router]);
 
     // Join practice contest
-    async function joinPractice() {
+    const joinPractice = useCallback(async () => {
         const response = await api.joinPracticeContest(contestId);
         if (response.success && response.data?.randomQuestion) {
             setCurrentQuestion(response.data.randomQuestion);
@@ -90,14 +62,14 @@ export default function PracticeContestPage() {
         } else {
             toast.error(response.error || 'Failed to join practice');
         }
-    }
+    }, [contestId]);
 
     // Join on mount after contest loaded
     useEffect(() => {
         if (contest && !isLoading) {
             joinPractice();
         }
-    }, [contest, isLoading]);
+    }, [contest, isLoading, joinPractice]);
 
     // Submit answer
     const handleSubmit = async () => {
@@ -108,25 +80,22 @@ export default function PracticeContestPage() {
         setIsSubmitting(false);
 
         if (response.success) {
-            const isCorrect = (response as any).error === 'correct';
+            const isCorrect = response.isCorrect === true;
 
             if (isCorrect) {
                 toast.success('Correct answer! +10 pts');
                 setCorrectCount(prev => prev + 1);
             } else {
-                // Backend sends correct answer in message field: "correct answer" + answer
-                const correctAnswer = (response as any).message?.replace('correct answer', '').trim() || '?';
+                const correctAnswer = response.correctAnswer || '?';
                 toast.error(`Incorrect, correct answer: ${correctAnswer}`);
             }
 
             setAnsweredCount(prev => prev + 1);
             setSelectedAnswer(null);
 
-            // Check for next question
             if (response.data?.randomQuestion) {
                 setCurrentQuestion(response.data.randomQuestion);
             } else {
-                // No more questions
                 setIsCompleted(true);
             }
         } else {
@@ -141,14 +110,12 @@ export default function PracticeContestPage() {
 
         if (response.success) {
             toast.success('Progress reset! Starting fresh...');
-            // Reset all state
             setAnsweredCount(0);
             setCorrectCount(0);
             setIsCompleted(false);
             setShowReAttemptConfirm(false);
             setCurrentQuestion(null);
             setSelectedAnswer(null);
-            // Re-join to get first question
             await joinPractice();
         } else {
             toast.error(response.error || 'Failed to reset progress');
@@ -161,7 +128,6 @@ export default function PracticeContestPage() {
         ? parseQuestion(currentQuestion.question, currentQuestion.srNo)
         : null;
 
-    // Loading state
     if (isLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
@@ -173,101 +139,19 @@ export default function PracticeContestPage() {
         );
     }
 
-    // Completion state
     if (isCompleted) {
-        const accuracy = answeredCount > 0 ? Math.round((correctCount / answeredCount) * 100) : 0;
-
         return (
-            <div className="min-h-screen bg-surface-alt flex flex-col items-center justify-center p-8">
-                {/* Re-attempt Confirmation Modal */}
-                {showReAttemptConfirm && (
-                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                        <div className="bg-card rounded-2xl border border-default p-6 max-w-md w-full shadow-2xl">
-                            <div className="flex items-center gap-3 mb-4">
-                                <div className="w-10 h-10 bg-amber-500/10 text-amber-500 rounded-full flex items-center justify-center">
-                                    <AlertTriangle className="w-5 h-5" />
-                                </div>
-                                <h3 className="text-lg font-semibold text-primary">Re-attempt Contest?</h3>
-                            </div>
-                            <p className="text-secondary mb-6">
-                                This will <span className="text-red-500 font-medium">permanently delete</span> all your previous submission data for this practice contest. You'll start from scratch.
-                            </p>
-                            <div className="flex gap-3">
-                                <Button
-                                    variant="ghost"
-                                    className="flex-1"
-                                    onClick={() => setShowReAttemptConfirm(false)}
-                                    disabled={isReAttempting}
-                                >
-                                    Cancel
-                                </Button>
-                                <Button
-                                    variant="primary"
-                                    className="flex-1 bg-amber-500 hover:bg-amber-600"
-                                    onClick={handleReAttempt}
-                                    disabled={isReAttempting}
-                                >
-                                    {isReAttempting ? (
-                                        <>
-                                            <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                                            Resetting...
-                                        </>
-                                    ) : (
-                                        'Yes, Re-attempt'
-                                    )}
-                                </Button>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                <div className="max-w-md w-full bg-card rounded-2xl border border-default p-8 text-center space-y-6 shadow-xl">
-                    <div className="w-20 h-20 bg-green-500/10 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <CheckCircle className="w-10 h-10" />
-                    </div>
-
-                    <div>
-                        <h1 className="text-2xl font-bold text-primary mb-2">Practice Complete!</h1>
-                        <p className="text-secondary">Great work on this practice session.</p>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-4 py-4 border-t border-b border-default">
-                        <div>
-                            <p className="text-sm text-muted mb-1">Answered</p>
-                            <p className="text-xl font-mono font-semibold text-primary">{answeredCount}</p>
-                        </div>
-                        <div>
-                            <p className="text-sm text-muted mb-1">Correct</p>
-                            <p className="text-xl font-mono font-semibold text-green-500">{correctCount}</p>
-                        </div>
-                        <div>
-                            <p className="text-sm text-muted mb-1">Accuracy</p>
-                            <p className="text-xl font-mono font-semibold text-accent-primary">{accuracy}%</p>
-                        </div>
-                    </div>
-
-                    <div className="flex flex-col gap-3">
-                        <Button
-                            variant="secondary"
-                            className="w-full"
-                            onClick={() => setShowReAttemptConfirm(true)}
-                            leftIcon={<RefreshCw className="w-4 h-4" />}
-                        >
-                            Re-attempt Contest
-                        </Button>
-                        <Link href={`/contests/${contestId}`}>
-                            <Button variant="primary" className="w-full">
-                                Back to Contest
-                            </Button>
-                        </Link>
-                        <Link href="/contests">
-                            <Button variant="ghost" className="w-full">
-                                Browse Contests
-                            </Button>
-                        </Link>
-                    </div>
-                </div>
-            </div>
+            <ContestCompletionScreen
+                contestId={contestId}
+                mode="practice"
+                answeredCount={answeredCount}
+                totalQuestions={totalQuestions}
+                correctCount={correctCount}
+                onReAttempt={handleReAttempt}
+                isReAttempting={isReAttempting}
+                showReAttemptConfirm={showReAttemptConfirm}
+                onShowReAttemptConfirm={setShowReAttemptConfirm}
+            />
         );
     }
 

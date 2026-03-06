@@ -14,7 +14,7 @@ interface ContestCardProps {
 }
 
 export function ContestCard({ contest }: ContestCardProps) {
-    const statusVariant = contest.status.toLowerCase() as 'live' | 'upcoming' | 'closed';
+    const statusVariant =  (contest.mode == "practice" ? 'practice' :  contest.status.toLowerCase() as 'live' | 'upcoming' | 'closed' |'practice' );
     const typeVariant = contest.type.toLowerCase() as 'dsa' | 'dev';
 
     return (
@@ -23,8 +23,9 @@ export function ContestCard({ contest }: ContestCardProps) {
                 {/* Header */}
                 <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-2">
-                        <Badge variant={statusVariant} showDot={contest.status === 'LIVE'}>
-                            {contest.status}
+                        <Badge variant={statusVariant}>
+
+                            {contest.mode == 'practice' ? 'PRACTICE' : contest.status}
                         </Badge>
                         <Badge variant={typeVariant}>
                             {contest.type === 'DSA' ? (

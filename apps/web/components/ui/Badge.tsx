@@ -1,7 +1,7 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 
-type BadgeVariant = 'default' | 'live' | 'upcoming' | 'closed' | 'dsa' | 'dev';
+type BadgeVariant = 'default' | 'live' | 'upcoming' | 'closed' | 'practice' | 'dsa' | 'dev';
 
 interface BadgeProps {
     children: React.ReactNode;
@@ -16,6 +16,7 @@ export function Badge({ children, variant = 'default', showDot = false, classNam
         live: 'badge-live',
         upcoming: 'badge-upcoming',
         closed: 'badge-closed',
+        practice: 'bg-blue-500/10 text-blue-500',
         dsa: 'badge-dsa',
         dev: 'badge-dev',
     };

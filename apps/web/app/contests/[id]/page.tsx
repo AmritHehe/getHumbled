@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { ArrowLeft, Calendar, Clock, Brain, Code, Play, Bell, BookOpen, Trophy, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
 import { api } from '@/lib/api';
 import type { Contest, ContestState } from '@/lib/types';
 import { formatDateTime } from '@/lib/utils';
@@ -21,8 +22,8 @@ export default function ContestDetailPage() {
             const response = await api.getContest(params.id as string);
             if (response.success && response.data) {
                 setContest(response.data);
-                // Backend returns mode as the computed contest state
-                setContestState((response as any).mode || null);
+                // Backend returns computed contest state as mode on the response
+                setContestState(response.mode || null);
             }
             setIsLoading(false);
         }
@@ -59,30 +60,17 @@ export default function ContestDetailPage() {
     const getStateBadge = () => {
         switch (contestState) {
             case 'LIVE':
-                return (
-                    <span className="text-xs px-2 py-1 rounded bg-green-500/10 text-green-600 flex items-center gap-1">
-                        <span className="live-dot" /> Live Now
-                    </span>
-                );
+                return <Badge variant="live" showDot>Live Now</Badge>;
             case 'UPCOMING':
-                return (
-                    <span className="text-xs px-2 py-1 rounded bg-amber-500/10 text-amber-600">
-                        Upcoming
-                    </span>
-                );
+                return <Badge variant="upcoming">Upcoming</Badge>;
             case 'PRACTICE':
                 return (
-                    <span className="text-xs px-2 py-1 rounded bg-blue-500/10 text-blue-600 flex items-center gap-1">
+                    <Badge variant="practice">
                         <BookOpen className="w-3 h-3" /> Practice Mode
-                    </span>
+                    </Badge>
                 );
             default:
-                // Closed contest - show ended badge
-                return (
-                    <span className="text-xs px-2 py-1 rounded bg-elevated text-muted">
-                        Contest Ended
-                    </span>
-                );
+                return <Badge variant="closed">Contest Ended</Badge>;
         }
     };
 
@@ -116,7 +104,7 @@ export default function ContestDetailPage() {
             case 'UPCOMING':
                 return (
                     <Button variant="secondary" className="w-full" leftIcon={<Bell className="w-4 h-4" />}>
-                        Notify Me(Coming Soom)
+                        Notify Me (Coming Soon)
                     </Button>
                 );
             default:
@@ -151,10 +139,10 @@ export default function ContestDetailPage() {
             <div className="mb-8">
                 <div className="flex flex-wrap items-center gap-2 mb-3">
                     {getStateBadge()}
-                    <span className="text-xs px-2 py-1 rounded bg-elevated text-muted flex items-center gap-1">
+                    <Badge variant={contest.type.toLowerCase() as 'dsa' | 'dev'}>
                         {contest.type === 'DSA' ? <Brain className="w-3 h-3" /> : <Code className="w-3 h-3" />}
                         {contest.type}
-                    </span>
+                    </Badge>
                 </div>
                 <h1 className="text-2xl md:text-3xl font-medium text-primary mb-3">
                     {contest.title}
@@ -215,9 +203,9 @@ export default function ContestDetailPage() {
                                     Leaderboard
                                 </h2>
                             </div>
-                            {(contest as any).leaderboard?.isFinaLized ? (
+                            {contest.leaderboard?.isFinaLized ? (
                                 <div className="space-y-2">
-                                    {(contest as any).leaderboard?.score?.slice(0, 10).map((entry: any, idx: number) => (
+                                    {contest.leaderboard?.score?.slice(0, 10).map((entry, idx) => (
                                         <div
                                             key={entry.id || idx}
                                             className="flex items-center justify-between p-3 rounded-lg bg-surface-alt"
@@ -228,7 +216,7 @@ export default function ContestDetailPage() {
                                                             idx === 2 ? 'bg-orange-500/20 text-orange-500' :
                                                                 'bg-elevated text-muted'
                                                     }`}>
-                                                    {entry.rank || idx + 1}
+                                                    {idx + 1}
                                                 </span>
                                                 <span className="text-sm text-primary">
                                                     {entry.user?.slice(0, 8)}...
@@ -239,7 +227,7 @@ export default function ContestDetailPage() {
                                             </span>
                                         </div>
                                     ))}
-                                    {(!((contest as any).leaderboard?.score) || (contest as any).leaderboard?.score?.length === 0) && (
+                                    {(!contest.leaderboard?.score || contest.leaderboard?.score?.length === 0) && (
                                         <p className="text-sm text-muted text-center py-4">
                                             No participants yet.
                                         </p>
@@ -247,7 +235,6 @@ export default function ContestDetailPage() {
                                 </div>
                             ) : (
                                 <div className="flex items-center justify-center gap-2 py-6 text-muted">
-                                    {/* <Loader2 className="w-4 h-4 animate-spin" /> */}
                                     <span className="text-sm">Admin is finalizing the leaderboard, it will be available soon</span>
                                 </div>
                             )}
@@ -270,4 +257,3 @@ export default function ContestDetailPage() {
         </div>
     );
 }
-

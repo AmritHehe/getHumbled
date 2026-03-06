@@ -159,7 +159,7 @@ export default function CreateContestPage() {
                         )}
                     </h3>
 
-                    {formData.status === 'UPCOMING' ? (
+                    {formData.status === 'UPCOMING' && (
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className="label">Start Date</label>
@@ -183,68 +183,42 @@ export default function CreateContestPage() {
                                 />
                             </div>
                         </div>
-                    ) : (
-                        <div>
-                            <label className="label">Quiz Duration (minutes)</label>
-                            <p className="text-xs text-muted mb-2">
-                                How long participants have to complete the contest
-                            </p>
-                            <div className="flex gap-3">
-                                {[15, 30, 45, 60, 90, 120].map((mins) => (
-                                    <button
-                                        key={mins}
-                                        type="button"
-                                        onClick={() => setFormData({ ...formData, duration: mins })}
-                                        className={cn(
-                                            'px-4 py-2 rounded-lg border text-sm font-medium transition-all',
-                                            formData.duration === mins
-                                                ? 'border-accent bg-accent/5 text-accent'
-                                                : 'border-default hover:border-hover'
-                                        )}
-                                    >
-                                        {mins}m
-                                    </button>
-                                ))}
-                            </div>
-                            <div className="mt-3">
-                                <Input
-                                    type="number"
-                                    placeholder="Or enter custom duration"
-                                    value={formData.duration}
-                                    onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) || 60 })}
-                                    min={5}
-                                    max={300}
-                                />
-                            </div>
-                        </div>
                     )}
 
-                    {/* Always show duration for UPCOMING too */}
-                    {formData.status === 'UPCOMING' && (
-                        <div>
-                            <label className="label">Quiz Duration (minutes)</label>
-                            <p className="text-xs text-muted mb-2">
-                                How long participants have to complete the contest once it goes live
-                            </p>
-                            <div className="flex gap-3 flex-wrap">
-                                {[15, 30, 45, 60, 90, 120].map((mins) => (
-                                    <button
-                                        key={mins}
-                                        type="button"
-                                        onClick={() => setFormData({ ...formData, duration: mins })}
-                                        className={cn(
-                                            'px-4 py-2 rounded-lg border text-sm font-medium transition-all',
-                                            formData.duration === mins
-                                                ? 'border-accent bg-accent/5 text-accent'
-                                                : 'border-default hover:border-hover'
-                                        )}
-                                    >
-                                        {mins}m
-                                    </button>
-                                ))}
-                            </div>
+                    {/* Duration Picker — shared between LIVE and UPCOMING */}
+                    <div>
+                        <label className="label">Quiz Duration (minutes)</label>
+                        <p className="text-xs text-muted mb-2">
+                            How long participants have to complete the contest
+                        </p>
+                        <div className="flex gap-3 flex-wrap">
+                            {[15, 30, 45, 60, 90, 120].map((mins) => (
+                                <button
+                                    key={mins}
+                                    type="button"
+                                    onClick={() => setFormData({ ...formData, duration: mins })}
+                                    className={cn(
+                                        'px-4 py-2 rounded-lg border text-sm font-medium transition-all',
+                                        formData.duration === mins
+                                            ? 'border-accent bg-accent/5 text-accent'
+                                            : 'border-default hover:border-hover'
+                                    )}
+                                >
+                                    {mins}m
+                                </button>
+                            ))}
                         </div>
-                    )}
+                        <div className="mt-3">
+                            <Input
+                                type="number"
+                                placeholder="Or enter custom duration"
+                                value={formData.duration}
+                                onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) || 60 })}
+                                min={5}
+                                max={300}
+                            />
+                        </div>
+                    </div>
                 </div>
 
                 {/* Actions */}
