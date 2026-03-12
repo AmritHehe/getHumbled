@@ -1,26 +1,44 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bitcount+Prop+Double+Ink:wght@100..900&display=swap');
+
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:where(.dark, .dark *));
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+:root{
+  --background : oklch(98.5% 0 0);
+  --foreground : #171717
 }
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-optical-sizing: auto;
+}
+
+  
+
+@theme {
+  --color-primary: oklch(98.5% 0 0);
+  --color-secondary:oklch(93% 0 0);
+  --color-tertiary: oklch(85% 0 0);
+  --color-secondTertiary : oklch(66.9% 0 0);
+  --color-textPrimary : oklch(21.4% 0.009 43.1);
+  --color-textSecondary : oklch(26.8% 0 0);
+  --color-textMuted :  oklch(27.4% 0.006 286.033);
+  --font-display : "Iosevka Charon Mono", monospace;
+  --font-heading : "Instrument Serif", serif;
+  --font-crazy : "Bitcount Prop Double Ink", system-ui
+}
+
+.dark{
+  --color-primary : oklch(14.5% 0 0);
+  --color-secondary : oklch(20.5% 0 0);
+  --color-tertiary : oklch(26.9% 0 0);
+  --color-secondTertiary : oklch(26.9% 0 0);
+  --color-textPrimary : oklch(98.5% 0 0) ;
+  --color-textSecondary : oklch(70.8% 0 0);
+  --color-textMuted :  oklch(43.9% 0 0);
+}
+
+@theme inline{
+
 }
