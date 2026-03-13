@@ -37,7 +37,7 @@ export const metadata: Metadata = {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "skull — Node Based Automation Platform",
+        alt: "SkillUp - Level Up Your Coding Skills",
       },
     ],
   },
